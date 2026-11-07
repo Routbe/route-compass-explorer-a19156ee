@@ -322,34 +322,15 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   b.fillStyle = "rgba(255,255,255,0.45)";
   b.font = `600 15px ui-monospace, SFMono-Regular, monospace`;
   b.fillText("LIVE · PROOF OF NOW", FACE_W / 2, qy + qrSize + 100);
-  // Contactless zone: EMV-style chip + NFC mark (the real NFC lives in the physical card / wallet key).
-  const chipY = qy + qrSize + 172;
-  const chip = b.createLinearGradient(48, chipY, 48 + 112, chipY + 84);
-  chip.addColorStop(0, "#e8d7a5");
-  chip.addColorStop(0.5, "#b99a55");
-  chip.addColorStop(1, "#e3cd8f");
-  b.fillStyle = chip;
-  b.beginPath();
-  b.roundRect(48, chipY, 112, 84, 14);
-  b.fill();
-  b.strokeStyle = "rgba(60,44,12,0.55)";
-  b.lineWidth = 2;
-  for (const yy of [chipY + 28, chipY + 56]) { b.beginPath(); b.moveTo(48, yy); b.lineTo(160, yy); b.stroke(); }
-  b.beginPath(); b.moveTo(104, chipY); b.lineTo(104, chipY + 84); b.stroke();
-  b.strokeStyle = "#f4f4f5";
-  b.lineWidth = 5;
-  for (let i = 0; i < 4; i++) {
-    b.beginPath();
-    b.arc(196, chipY + 42, 12 + i * 12, -Math.PI / 4, Math.PI / 4);
-    b.stroke();
-  }
+  // Contactless label; the chip and antenna are drawn by the 3D card's security layer.
+  const nfcY = qy + qrSize + 196;
   b.textAlign = "left";
   b.fillStyle = "#e4e4e7";
   b.font = `700 22px ui-sans-serif, system-ui, sans-serif`;
-  b.fillText("NFC · CONTACTLESS", 268, chipY + 36);
+  b.fillText("NFC · CONTACTLESS", 48, nfcY);
   b.fillStyle = "rgba(255,255,255,0.5)";
   b.font = `500 16px ui-monospace, SFMono-Regular, monospace`;
-  b.fillText("BETALEN · TOEGANG · SLEUTEL", 268, chipY + 64);
+  b.fillText("BETALEN · TOEGANG · SLEUTEL", 48, nfcY + 28);
   // MRZ strip
   const mrzTop = FACE_H - 150;
   b.fillStyle = "#e9e7e1";
