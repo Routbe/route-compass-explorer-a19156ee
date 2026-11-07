@@ -59,7 +59,7 @@ function defaultMaterialFor(fg: string): CardMaterial {
  * "ROUT Card": a 3D digital twin of the member's card, plus Google Wallet,
  * Apple Wallet and vCard exports — all from the same server-built payload.
  */
-export function RoutCardDialog({ open, onOpenChange, handle, space, inline = false }: { open: boolean; onOpenChange: (v: boolean) => void; handle: string; space?: "root" | "alias"; /** Renders the same manager as a page section instead of a popup. */ inline?: boolean }) {
+export function RoutCardDialog({ open, onOpenChange, handle, space, inline = false, vault = "all" }: { open: boolean; onOpenChange: (v: boolean) => void; handle: string; space?: "root" | "alias"; /** Renders the same manager as a page section instead of a popup. */ inline?: boolean; /** "key": only the NFC key pass (profile cards live in their own tab). */ vault?: "all" | "key" }) {
   const { t } = useTranslation();
   const loadCard = useServerFn(getWalletCard);
   const loadStatus = useServerFn(getWalletStatus);
@@ -86,6 +86,11 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
   const [zoomed, setZoomed] = useState(false);
   const [code, setCode] = useState<string | null>(null);
   const [secureUrl, setSecureUrl] = useState<string | null>(null);
+  const [frontCode, setFrontCode] = useState<string | null>(null);
+  // The card is revealed in one go: only after its faces, 3D text and first codes are in.
+  const [liveSettled, setLiveSettled] = useState(false);
+  const [secureSettled, setSecureSettled] = useState(false);
+  const [revealTimeout, setRevealTimeout] = useState(false);
   const [ownerState, setOwnerState] = useState<{ owner: boolean; frozen: boolean; available: boolean }>({ owner: false, frozen: false, available: false });
   const [tier, setTier] = useState<AgeTier>("sovereign");
   const secure: SecureRef = useRef({ iat: 0, exp: 0 });
@@ -132,7 +137,8 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
     if (!card || webgl === null) return;
     let alive = true;
     // WebGL draws names as SDF text; the CSS fallback keeps them printed.
-    void Promise.all([drawCardFaces(card, { sdfText: webgl, secureQr: secureUrl, tier: faceTier }), drawCardFaces(card, { secureQr: secureUrl, tier: faceTier })]).then(([gl, flat]) => {
+    const frontQr = frontCode && card.space !== "alias" ? frontCardUrl(new URL(card.url).origin, card.handle, frontCode) : null;
+    void Promise.all([drawCardFaces(card, { sdfText: webgl, secureQr: secureUrl, frontQr, tier: faceTier }), drawCardFaces(card, { secureQr: secureUrl, frontQr, tier: faceTier })]).then(([gl, flat]) => {
       if (!alive) return;
       setFaces(gl);
       setImages({ front: flat.front.toDataURL("image/png"), back: flat.back.toDataURL("image/png") });
@@ -142,7 +148,7 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card, webgl, secureUrl, styledCard?.hexBackgroundColor, styledCard?.hexForegroundColor, styledCard?.displayName, styledCard && "regionDisplay" in styledCard ? styledCard.regionDisplay : "", finish === "junior"]);
+  }, [card, webgl, secureUrl, frontCode, styledCard?.hexBackgroundColor, styledCard?.hexForegroundColor, styledCard?.displayName, styledCard && "regionDisplay" in styledCard ? styledCard.regionDisplay : "", finish === "junior"]);
 
   // A minor whose saved/default material is outside their tier gets the first allowed one.
   useEffect(() => {
@@ -157,6 +163,7 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
       return;
     }
     let alive = true;
+    const settle = () => { if (alive) setSecureSettled(true); };
     let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = async () => {
       try {
@@ -165,13 +172,16 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
         if (!r || r.frozen) {
           secure.current = { iat: 0, exp: 0 };
           setSecureUrl(null);
+          settle();
           return;
         }
         const skew = Date.now() - r.serverNow;
         secure.current = { iat: r.iat + skew, exp: r.exp + skew };
         setSecureUrl(r.url);
+        settle();
         timer = setTimeout(() => void tick(), SECURE_ROTATE_MS);
       } catch {
+        settle();
         if (alive) timer = setTimeout(() => void tick(), 10_000);
       }
     };
@@ -221,14 +231,18 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
     const tick = async () => {
       try {
         const r = await loadLive({ data: { handle, space } });
-        if (!alive || !r) return;
+        if (!alive) return;
+        if (!r) { setLiveSettled(true); return; }
         const skew = Date.now() - r.serverNow;
         live.current = { seed: r.seed, expiresAt: r.expiresAt + skew, windowMs: 30_000 };
         setCode(r.code);
+        setFrontCode(r.frontCode ?? null);
+        setLiveSettled(true);
         setOwnerState({ owner: r.owner, frozen: r.frozen, available: r.freezeAvailable });
         setTier(r.tier);
         timer = setTimeout(() => void tick(), Math.max(1000, r.expiresAt + skew - Date.now() + 250));
       } catch {
+        if (alive) setLiveSettled(true);
         if (alive) timer = setTimeout(() => void tick(), 10_000);
       }
     };
@@ -238,6 +252,13 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
       clearTimeout(timer);
     };
   }, [open, card, handle, space, loadLive, liveNonce]);
+
+  // Never leave the stage empty: reveal after 8 s whatever is ready.
+  useEffect(() => {
+    if (!open) return;
+    const id = window.setTimeout(() => setRevealTimeout(true), 8000);
+    return () => window.clearTimeout(id);
+  }, [open]);
 
   const toggleFreeze = async () => {
     const next = !ownerState.frozen;
@@ -515,6 +536,8 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
     }
   };
 
+  const waitSecure = ownerState.owner && !ownerState.frozen && !secureSettled;
+  const shown = card === null || revealTimeout || (ready && liveSettled && !waitSecure);
   const flat = images ? <FlatCard faces={images} flipped={flipped} tilt={flatTilt} onFlip={flip} /> : null;
 
   return (
@@ -537,14 +560,20 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
           data-interface-artwork
           style={{ cursor: zoomed ? "move" : "grab" }}
           data-scene-ready={ready ? "true" : undefined}
+          data-card-shown={shown ? "true" : undefined}
         >
+          {!shown && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center" aria-busy="true">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden />
+              <span className="sr-only">{t("card.loading", { defaultValue: "Kaart laden" })}</span>
+            </div>
+          )}
+          <div className={cn("h-full w-full transition-opacity duration-300 ease-out", shown ? "opacity-100" : "opacity-0")}>
           {card === null ? (
             <p className="flex h-full items-center justify-center p-6 text-center text-sm text-muted-foreground">{t("card.notFound")}</p>
-          ) : !faces || webgl === null ? (
-            <div className="flex h-full items-center justify-center" aria-busy="true"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden /></div>
-          ) : webgl ? (
-            <GlBoundary fallback={<div className="flex h-full items-center p-4">{flat}</div>}>
-              <Suspense fallback={<div className="flex h-full items-center p-4">{flat}</div>}>
+          ) : !faces || webgl === null ? null : webgl ? (
+            <GlBoundary fallback={<ReadyOnMount onReady={() => setReady(true)}><div className="flex h-full items-center p-4">{flat}</div></ReadyOnMount>}>
+              <Suspense fallback={null}>
                 <RoutCard3D
                   faces={faces}
                   finish={finish}
@@ -566,6 +595,7 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
           ) : (
             <div className="flex h-full items-center p-4">{flat}</div>
           )}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -581,7 +611,7 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
 
         {ownerState.owner ? (
           <div className="grid gap-3">
-            <WalletVault />
+            <WalletVault only={vault === "key" ? ["key"] : undefined} />
             <Button type="button" variant="outline" className="h-11 gap-2 rounded-full" disabled={!card || busy !== null} onClick={() => void saveVcf()}>
               <UserPlus className="h-4 w-4" aria-hidden /> {t("card.vcf")}
             </Button>
@@ -619,6 +649,22 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
             </p>
             <Button type="button" size="sm" variant={ownerState.frozen ? "default" : "destructive"} disabled={!ownerState.available || busy === "freeze"} onClick={() => void toggleFreeze()}>
               {ownerState.frozen ? t("card.unfreeze", { defaultValue: "Ontdooien" }) : t("card.freeze", { defaultValue: "Bevriezen" })}
+            </Button>
+          </div>
+        )}
+
+        {card && ownerState.owner && card.space !== "alias" && (
+          <div className="grid gap-2 rounded-2xl border border-border p-3 text-xs text-muted-foreground">
+            <p className="flex items-start gap-2">
+              <QrCode className="mt-0.5 h-4 w-4 shrink-0 text-foreground" aria-hidden />
+              <span>{t("card.frontQrNote", { defaultValue: "Grote QR vooraan: iedereen mag hem scannen en komt op je profiel. De 4 cijfers achteraan wisselen elke 10 minuten, zodat een gelekte foto snel waardeloos is." })}</span>
+            </p>
+            <p className="flex items-start gap-2">
+              <Nfc className="mt-0.5 h-4 w-4 shrink-0 text-foreground" aria-hidden />
+              <span>{t("card.backQrNote", { defaultValue: "Kleine QR en NFC achteraan: een lange, eenmalige beveiligde link die elke minuut vervalt. Alleen die kant is bedoeld voor betalen en toegang." })}</span>
+            </p>
+            <Button type="button" variant="outline" className="mt-1 h-11 gap-2 rounded-full" disabled>
+              <CreditCard className="h-4 w-4" aria-hidden /> {t("card.orderPhysical", { defaultValue: "Fysieke kaart bestellen · binnenkort" })}
             </Button>
           </div>
         )}
@@ -708,6 +754,12 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
 
     </Frame>
   );
+}
+
+/** Marks the card ready once a fallback face is actually on screen. */
+function ReadyOnMount({ onReady, children }: { onReady: () => void; children: ReactNode }) {
+  useEffect(() => { onReady(); }, [onReady]);
+  return <>{children}</>;
 }
 
 function Frame({ inline, open, onOpenChange, children }: { inline: boolean; open: boolean; onOpenChange: (v: boolean) => void; children: ReactNode }) {
