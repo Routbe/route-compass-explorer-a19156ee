@@ -154,25 +154,27 @@ async function bunqCall<T>(
       /* niet-JSON antwoord: ruwe tekst loggen */
     }
 
+    // Nooit ruwe provider-payloads loggen of bewaren: credentials,
+    // e-mailadressen, IBAN's en rekeninghouders worden eerst geredacteerd
+    // (security/redact.ts) — ook in de diagnose-run en foutmeldingen.
+    const { redactLogPayload, redactText } = await import("./security/redact");
+    const safeResponse = redactLogPayload(parsed);
     const entry: BunqStepLog = {
       step,
       method,
       path,
       status: res.status,
       ok: res.ok,
-      response: parsed,
+      response: safeResponse,
     };
     lastRunLog.push(entry);
-    // Nooit ruwe provider-payloads loggen: credentials en e-mailadressen
-    // worden eerst geredacteerd (security/redact.ts).
-    const { redactLogPayload } = await import("./security/redact");
-    console.log(
-      `[bunq] ${step} → ${method} ${path} HTTP ${res.status}\n${JSON.stringify(redactLogPayload(parsed), null, 2)}`,
-    );
+    console.log(`[bunq] ${step} → ${method} ${path} HTTP ${res.status}`);
 
     if (!res.ok) {
       const error = new Error(
-        `bunq ${step} (${method} ${path}) → HTTP ${res.status}: ${text.slice(0, 800)}`,
+        `bunq ${step} (${method} ${path}) → HTTP ${res.status}: ${redactText(
+          typeof safeResponse === "string" ? safeResponse : JSON.stringify(safeResponse),
+        ).slice(0, 800)}`,
       );
       if (isTransientStatus(res.status) && attempt < MAX_ATTEMPTS) {
         const backoff = 400 * 2 ** (attempt - 1);
@@ -650,8 +652,9 @@ export async function createBunqMeTab(opts: {
 
   const value = (opts.amountCents / 100).toFixed(2);
 
+  const { maskIban } = await import("./security/redact");
   console.log(
-    `[bunq] routing → valuta ${route.currency}, land ${opts.country ?? "-"}, rekening ${route.account.id} (${route.account.currency}, ${route.account.iban ?? "geen IBAN"})` +
+    `[bunq] routing → valuta ${route.currency}, land ${opts.country ?? "-"}, rekening ${route.account.id} (${route.account.currency}, ${route.account.iban ? maskIban(route.account.iban) : "geen IBAN"})` +
       (route.foreignCurrencyFallback ? " — vreemde-valuta-flow via hoofd-EUR-account" : ""),
   );
 

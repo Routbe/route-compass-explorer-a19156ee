@@ -55,3 +55,26 @@ describe("redactLogPayload", () => {
     expect(redactLogPayload(input)).toEqual(input);
   });
 });
+
+describe("IBAN-masking", () => {
+  it("maskeert compacte en gegroepeerde IBAN's in tekst", async () => {
+    const { maskIbansInText, redactText } = await import("./redact");
+    expect(maskIbansInText("naar NL91ABNA0417164300 ok")).toBe("naar NL91***00 ok");
+    expect(maskIbansInText("BE68 5390 0754 7034")).toBe("BE68***34");
+    expect(redactText("NL91ABNA0417164300 / jonas@rout.be")).toBe("NL91***00 / j***s@rout.be");
+  });
+
+  it("maskeert IBAN-waarden onder niet-gevoelige sleutels en houdt aliassen verborgen", () => {
+    const out = redactLogPayload({
+      MonetaryAccountBank: {
+        id: 12,
+        description: "Hoofdrekening NL91ABNA0417164300",
+        alias: [{ type: "IBAN", value: "NL91ABNA0417164300", name: "ROUT BV" }],
+      },
+    }) as { MonetaryAccountBank: { id: number; description: string; alias: unknown } };
+    expect(out.MonetaryAccountBank.id).toBe(12);
+    expect(out.MonetaryAccountBank.description).toBe("Hoofdrekening NL91***00");
+    expect(out.MonetaryAccountBank.alias).toBe("[redacted]");
+    expect(JSON.stringify(out)).not.toContain("0417164300");
+  });
+});
