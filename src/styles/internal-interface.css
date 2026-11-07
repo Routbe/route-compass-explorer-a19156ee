@@ -38,7 +38,7 @@
   --m-hover: hsl(var(--foreground) / 0.08);
 }
 
-@scope (:root[data-workspace-ui="internal"][data-theme="mechanical"]) to ([data-profile-theme], [data-interface-artwork]) {
+@scope (:root[data-workspace-ui="internal"][data-theme="mechanical"]) to ([data-profile-theme], [data-interface-artwork], .preview-sheet) {
   /* 1 — No diffusion anywhere: blur, glow and soft shadows are not part of this material. */
   *, *::before, *::after {
     backdrop-filter: none !important;
@@ -194,6 +194,17 @@
     border-radius: var(--m-radius-field) !important;
   }
   [data-state="open"] > h3 > [data-radix-collection-item], [data-state="open"] > h3 > button { border-bottom: 1px solid var(--m-hairline) !important; }
+}
+
+/* The QR paper sheet keeps its print look, but its action keys still press like keys. */
+:root[data-workspace-ui="internal"][data-theme="mechanical"] .preview-sheet .spatial-button:is([data-spatial-control="default"], [data-spatial-control="destructive"], [data-spatial-control="matcha"]):not([data-spatial-size="icon"]):not(:disabled) {
+  border: 1px solid oklch(0.12 0 0) !important;
+  box-shadow: 2px 2px 0 0 oklch(0.12 0 0) !important;
+  transition: translate 75ms var(--m-key-ease), box-shadow 75ms var(--m-key-ease) !important;
+}
+:root[data-workspace-ui="internal"][data-theme="mechanical"] .preview-sheet .spatial-button:not(:disabled):active {
+  translate: 2px 2px;
+  box-shadow: 0 0 0 0 transparent !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
