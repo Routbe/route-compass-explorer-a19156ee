@@ -54,6 +54,22 @@ export function resolveTipAmount(requested: unknown, rules: TipAmountRules): num
 }
 
 /**
+ * Amount for a bank payment request (bunq.me fallback of a bank transfer).
+ * Never taken from the browser: it is the member's own stored pending payment
+ * (base + one-off contribution) or, without one, the server's standard price.
+ */
+export function bankRequestAmountCents(
+  stored: { amountCents: unknown; donationCents: unknown } | null,
+  standardPriceCents: number,
+): number | null {
+  const total = stored
+    ? Number(stored.amountCents ?? 0) + Number(stored.donationCents ?? 0)
+    : standardPriceCents;
+  if (!Number.isInteger(total) || total <= 0) return null;
+  return total;
+}
+
+/**
  * A donation may only be marked paid when Stripe actually collected exactly
  * the stored amount in EUR.
  */

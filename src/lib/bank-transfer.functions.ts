@@ -41,14 +41,16 @@ export const getBankTransferDetails = createServerFn({ method: "POST" })
     z
       .object({
         country: z.string().trim().min(2).max(20),
-        /** Bedrag voor de bunq.me-fallback (centen); optioneel. */
-        amountCents: z.number().int().positive().optional(),
-        /** ROUT-referentie voor de omschrijving van het bunq.me-verzoek. */
+        /**
+         * ROUT-referentie van de eigen openstaande betaling. Het bedrag van
+         * een bunq.me-verzoek komt altijd van de server (opgeslagen betaling
+         * of standaardprijs), nooit uit de browser.
+         */
         reference: z.string().trim().max(64).optional(),
       })
       .parse(data),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { currencyForCountry, isSepaCountry } = await import("./bunq-currency");
     const currency = currencyForCountry(data.country);
     const sepaCountry = isSepaCountry(data.country) || currency === "EUR";
@@ -143,9 +145,35 @@ export const getBankTransferDetails = createServerFn({ method: "POST" })
         // Laatste vangnet: dynamisch bunq.me-verzoek in die valuta.
 
         try {
+          // Server-owned amount: the member's own open payment with this
+          // reference, otherwise today's standard price for a transfer.
+          const { sql } = await import("./neon");
+          const rows = data.reference
+            ? ((await sql`
+                select amount_cents, donation_cents, reference_code
+                  from public.verification_payments
+                 where user_id = ${context.userId}
+                   and reference_code = ${data.reference}
+                   and status in ('pending', 'processing')
+                 order by created_at desc
+                 limit 1
+              `) as { amount_cents: unknown; donation_cents: unknown; reference_code: string | null }[])
+            : [];
+          const stored = rows[0] ?? null;
+          const { bankRequestAmountCents } = await import("./payment-amount-policy");
+          const standardCents = stored
+            ? 0
+            : await (await import("./referral-discount.server")).bestPriceCents("sepa", null, context.userId);
+          const amountCents = bankRequestAmountCents(
+            stored ? { amountCents: stored.amount_cents, donationCents: stored.donation_cents } : null,
+            standardCents,
+          );
+          if (amountCents === null) {
+            return { ok: false as const, reason: "no_local_account" as const, currency, sepaCountry };
+          }
           const tab = await createBunqMeTab({
-            amountCents: data.amountCents ?? 399,
-            description: data.reference ? `ROUT ${data.reference}` : "ROUT verificatie",
+            amountCents,
+            description: stored?.reference_code ? `ROUT ${stored.reference_code}` : "ROUT verificatie",
             currency,
             country: data.country,
           });
