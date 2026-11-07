@@ -7,6 +7,14 @@
  * - temporal noise keyed to the live server seed and the real clock
  */
 import * as THREE from "three";
+import { FACE_H, FACE_W, FRONT_AVATAR } from "./card-faces";
+
+/** Reserved portrait disc in UV space (follows the printed avatar in card-faces). */
+const AVATAR_UV = {
+  y: (1 - FRONT_AVATAR.cy / FACE_H).toFixed(4),
+  r0: (FRONT_AVATAR.r / FACE_W).toFixed(4),
+  r1: ((FRONT_AVATAR.r + 10) / FACE_W).toFixed(4),
+};
 
 export const LATENT_COS = 0.7071; // cos(45 deg)
 export const LATENT_WIDTH = 0.035;
