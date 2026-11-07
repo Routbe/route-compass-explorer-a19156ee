@@ -93,3 +93,10 @@ describe("Google pass follows the whole profile palette", () => {
     expect(googleArtworkVersion({ ...card, verified: true })).not.toBe(googleArtworkVersion(card));
   });
 });
+describe("generated Wallet image headers", () => {
+  it("open to any origin and cached for a year as immutable", async () => {
+    const { WALLET_IMAGE_HEADERS } = await import("./wallet-image-headers");
+    expect(WALLET_IMAGE_HEADERS["access-control-allow-origin"]).toBe("*");
+    expect(WALLET_IMAGE_HEADERS["cache-control"]).toBe("public, max-age=31536000, immutable");
+  });
+});
