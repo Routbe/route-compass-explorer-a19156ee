@@ -1,7 +1,8 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, Loader2, RotateCw, ShieldCheck, Smartphone, UserPlus, Wallet, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, CreditCard, Loader2, Nfc, QrCode, RotateCw, ShieldCheck, Smartphone, UserPlus, Wallet, ZoomIn, ZoomOut } from "lucide-react";
+import { frontCardUrl } from "@/lib/wallet/card-front-code";
 import { Input } from "@/components/ui/input";
 import { GYRO_CALIBRATION_SAMPLES, GYRO_REST_MS, filterGyro, orientationToDegrees, orientationToTilt, SPIN_PER_FRAME_WIDTH, zoomFromWheel, zoomFromPinch, clampPan, clampZoom } from "./card-physics";
 import { toast } from "sonner";
