@@ -39,8 +39,10 @@ describe("workspace material preference lifecycle", () => {
   });
   it("synchronizes another tab and falls back to Mechanical on clearing storage", async () => {
     render(<ThemeProvider><Controls /></ThemeProvider>);
+    localStorage.setItem(INTERFACE_THEME_KEY, "glass");
     act(() => window.dispatchEvent(new StorageEvent("storage", { key: INTERFACE_THEME_KEY, newValue: "glass" })));
     expect(document.documentElement.dataset["theme"]).toBe("glass");
+    localStorage.clear();
     act(() => window.dispatchEvent(new StorageEvent("storage", { key: null, newValue: null })));
     expect(document.documentElement.dataset["theme"]).toBe("mechanical");
   });
