@@ -94,14 +94,15 @@
 
 ## Current request: keys, sharing, ask page, wallet card, identity layer (7 Nov 2026)
 
-- [ ] Mobile check: buttons must never stick out of rounded button groups/frames.
-- [ ] Mechanical: high-end keycaps (depth, shadow, press), still calm, rounded, strong colours.
-- [ ] Move the Mechanical/Glass switch out of the menus into Account & Beveiliging.
-- [ ] "Wat wil je delen": official Snapchat, Instagram and WhatsApp logos.
-- [ ] Sharing pre-fills the link (Snapchat attachment, WhatsApp text; Instagram copies the link).
-- [ ] Dedicated anonymous-question page with nothing else on it.
-- [ ] ROUT card appears in one go, never first without its design.
-- [ ] Wallet: ROUT card first (NFC, freeze/block, physical order later); "Profielkaart" shows profile-hub cards.
-- [ ] Card front: big QR rout.be/<user>/<4 digits changing every 10 min>; back: small QR + NFC with a very long secret link.
+- [x] Mobile check: buttons must never stick out of rounded button groups/frames (signed-out pages scanned at 390px; signed-in pages blocked by missing sign-in keys).
+- [x] Mechanical: high-end keycaps (depth, shadow, press), still calm, rounded, strong colours.
+- [x] Move the Mechanical/Glass switch out of the menus into Account & Beveiliging.
+- [x] "Wat wil je delen": official Snapchat, Instagram and WhatsApp logos.
+- [x] Sharing pre-fills the link (Snapchat attachment, WhatsApp text; Instagram copies the link).
+- [x] Dedicated anonymous-question page with nothing else on it.
+- [x] ROUT card appears in one go, never first without its design.
+- [x] Wallet: ROUT card first (NFC, freeze/block, physical order later); "Profielkaart" shows profile-hub cards.
+- [ ] Live 4-digit codes and secure back link on a real account: blocked by missing CARD_LIVENESS_SECRET and sign-in keys.
+- [x] Card front: big QR rout.be/<user>/<4 digits changing every 10 min>; back: small QR + NFC with a very long secret link.
 - [ ] Identity layer: SUPREME (server router) and OMEGA (no server mapping, client ZK proofs) contradict each other; needs owner choice.
 - [ ] Identity uploads (PRF derivation + E2EE of birth date/names + ZK/VC, decoupled tables; Shamir recovery vault, service-worker integrity, OHTTP): needs owner decision — encrypting birth dates breaks the server-side minor/parent-consent checks, and a service worker cannot protect against a server that serves a changed worker.
