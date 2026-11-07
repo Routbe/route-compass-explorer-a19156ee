@@ -31,7 +31,7 @@ use the editor.
 
 ## Imported ROUT application
 - Preserve the source TanStack routes, providers, assets, and MDX catalog so the original app remains compatible.
-- Preserve managed project metadata, generated integrations, and auth attachment when importing source so this project keeps its own identity.
+- Preserve managed project metadata when importing source; register generated backend integrations and their auth attachment only when this project has its own backend connected. Why: the app signs in through its own auth, and a missing backend connection breaks every page that calls the server.
 - Keep imported compiler options and MDX compilation while retaining the managed deployment target so source code compiles in this environment.
 - Never copy source credentials or apply external database scripts automatically; original accounts and services require explicit compatible configuration.
 
