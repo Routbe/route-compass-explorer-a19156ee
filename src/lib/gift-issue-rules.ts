@@ -28,6 +28,30 @@ export function giftDiscount(input: GiftIssueInput) {
     : { percentOff: input.percentOff ?? 0, amountOffCents: 0, maxDiscountCents: input.maxDiscountCents ?? null };
 }
 
+/** Gift e-mails one administrator may send per hour (issue + resend together). */
+export const GIFT_MAIL_RULE = { limit: 20, windowSec: 3600 } as const;
+
+export type StoredGiftRecipient = {
+  recipientEmail: string | null;
+  recipientName: string | null;
+  message: string | null;
+};
+
+/**
+ * A resend goes to the recipient stored when the gift was issued, with the
+ * stored message; browser-supplied address and text are ignored then.
+ */
+export function resendTarget(stored: StoredGiftRecipient | null, input: GiftIssueInput): GiftIssueInput {
+  if (!stored?.recipientEmail) return input;
+  return {
+    ...input,
+    recipientEmail: stored.recipientEmail,
+    recipientUserId: null,
+    recipientName: stored.recipientName ?? undefined,
+    message: stored.message ?? undefined,
+  };
+}
+
 export function requireGiftActivation(result: "activated" | "duplicate" | "not_found") {
   if (result === "not_found") throw new Error("gift_activation_failed");
 }

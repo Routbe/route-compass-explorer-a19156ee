@@ -1,5 +1,5 @@
 import { sql } from "./neon";
-import { giftDiscount, requireGiftActivation, type GiftIssueInput } from "./gift-issue-rules";
+import { GIFT_MAIL_RULE, giftDiscount, requireGiftActivation, type GiftIssueInput, type StoredGiftRecipient } from "./gift-issue-rules";
 import { createGiftOrder, markGiftCardPaid } from "./gift-cards.server";
 import { generatePromoCode } from "./promo-admin.server";
 import { sendMail } from "@/emails/send.server";
@@ -32,11 +32,15 @@ async function recipientInput(input: GiftIssueInput): Promise<GiftIssueInput> {
   return { ...input, recipientEmail: email };
 }
 
-export async function sendAdminGift(code: string, input: GiftIssueInput) {
+export async function sendAdminGift(adminId: string, code: string, input: GiftIssueInput) {
   if (!input.sendEmail) return { emailed: false, delivery: "not_requested" as const };
   // Email addresses found through account lookup never cross the server boundary.
   try { input = await recipientInput(input); } catch { return { emailed: false, delivery: "failed" as const }; }
   if (!input.recipientEmail) return { emailed: false, delivery: "failed" as const };
+  // Per-admin hourly cap, fail-closed: a broken counter never opens unlimited mail.
+  const { hitRateLimit } = await import("./rate-limit-db.server");
+  const limit = await hitRateLimit("admin-gift-mail", adminId, GIFT_MAIL_RULE, { failClosed: true });
+  if (!limit.ok) return { emailed: false, delivery: "failed" as const };
   const c = copy[input.language];
   const d = giftDiscount(input);
   const money = (cents: number) => new Intl.NumberFormat(input.language, { style: "currency", currency: "EUR" }).format(cents / 100);
@@ -72,5 +76,21 @@ export async function issueAdminGift(adminId: string, purchaserEmail: string, in
     await sql`insert into public.promo_codes (code, label, percent_off, amount_off_cents, max_discount_cents, max_redemptions, expires_at, active)
       values (${code}, ${`${discount.percentOff}%`}, ${discount.percentOff}, 0, ${discount.maxDiscountCents}, ${input.maxRedemptions}, ${input.expiresAt ?? null}::timestamptz, true)`;
   }
-  return { code, ...await sendAdminGift(code, input) };
+  return { code, ...await sendAdminGift(adminId, code, input) };
+}
+
+/** Recipient stored with a fixed-value gift card, if any (percentage gifts store none). */
+export async function storedGiftRecipient(code: string): Promise<StoredGiftRecipient | null> {
+  const rows = await sql`select recipient_email, recipient_name, message from public.gift_cards where code = ${code} limit 1`;
+  const row = rows[0];
+  if (!row) return null;
+  const str = (v: unknown) => (typeof v === "string" && v ? v : null);
+  return { recipientEmail: str(row.recipient_email), recipientName: str(row.recipient_name), message: str(row.message) };
+}
+
+/** Audit note describing the mail target without revealing looked-up addresses. */
+export function giftMailAuditNote(input: GiftIssueInput, emailed: boolean): string | null {
+  if (!input.sendEmail) return null;
+  const target = input.recipientUserId ? "account" : `typed @${(input.recipientEmail ?? "").split("@")[1] ?? "?"}`;
+  return `mail ${emailed ? "accepted" : "not sent"} → ${target}`;
 }
