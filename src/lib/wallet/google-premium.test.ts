@@ -1,13 +1,13 @@
 import { hexToOklch } from "./wallet-color";
 import { describe, expect, it } from "vitest";
 import { GOOGLE_PASS_DESIGN, googleArtworkVersion } from "./google-premium-art";
-import { googleCardObject, googleCardSaveClaims, walletCardPayload } from "./wallet-pass";
+import { googleCardClass, googleCardObject, googleCardSaveClaims, walletCardPayload } from "./wallet-pass";
 
 const card = walletCardPayload({ handle: "maker", space: "root", displayName: "Maker", tagline: "My work", themeBg: "#ff00ff", accent: "#ff0000", avatarSrc: null }, "https://rout.be", "RT-235Q-ABCD-X");
 describe("premium Google pass rules", () => {
   it("harmonises saturated profile colours into a rich jewel-tone tile with readable white text", async () => {
     const { contrastRatio } = await import("./wallet-color");
-    const bg = googleCardObject(card, "3388").hexBackgroundColor;
+    const bg = googleCardClass(card, "3388").hexBackgroundColor;
     const lch = hexToOklch(bg)!;
     expect(lch.L).toBeGreaterThanOrEqual(0.25);
     expect(lch.L).toBeLessThanOrEqual(0.445);
@@ -16,10 +16,17 @@ describe("premium Google pass rules", () => {
     expect(contrastRatio("#ffffff", bg)).toBeGreaterThanOrEqual(4.5);
     expect(card.hexBackgroundColor).toBe("#ff00ff");
   });
-  it("reserves exactly two front rows for card number and the profile hub", () => {
-    const rows = googleCardSaveClaims(card, { issuerId: "3388", serviceAccountEmail: "fixture@example.invalid", origins: ["https://rout.be"] }).payload.genericClasses[0]?.classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos;
-    expect(rows?.map(r => r.oneItem.item.firstValue.fields[0]?.fieldPath)).toEqual(["object.textModulesData['card']", "object.textModulesData['hub']"]);
-    expect(googleCardObject(card, "3388").textModulesData.some(m => m.id === "authentication")).toBe(true);
+  it("puts the handle on the primary front row and name + card number on the second", () => {
+    const rows = googleCardSaveClaims(card, { issuerId: "3388", serviceAccountEmail: "fixture@example.invalid", origins: ["https://rout.be"] }).payload.loyaltyClasses[0]?.classTemplateInfo?.cardTemplateOverride.cardRowTemplateInfos ?? [];
+    const paths = rows.map((r) => ("oneItem" in r ? [r.oneItem.item] : [r.twoItems.startItem, r.twoItems.endItem]).map((i) => i.firstValue.fields[0]?.fieldPath));
+    expect(paths).toEqual([["object.accountName"], ["object.textModulesData['name']", "object.accountId"]]);
+  });
+  it("keeps the long cryptographic texts off the card face, only in the details", () => {
+    const object = googleCardObject(card, "3388");
+    const ids = object.textModulesData.map((m) => m.id);
+    expect(ids).toEqual(expect.arrayContaining(["authentication", "sovereignty", "infrastructure", "emergency"]));
+    const rows = JSON.stringify(googleCardClass(card, "3388").classTemplateInfo);
+    for (const id of ["authentication", "sovereignty", "infrastructure", "emergency", "hub"]) expect(rows).not.toContain(`'${id}'`);
   });
   it("uses 660-square logo with 17.5 percent safe padding", () => {
     expect(GOOGLE_PASS_DESIGN.logoSize).toBe(660);
@@ -29,17 +36,17 @@ describe("premium Google pass rules", () => {
     expect([GOOGLE_PASS_DESIGN.heroWidth, GOOGLE_PASS_DESIGN.heroHeight]).toEqual([1032, 812]);
     const object = googleCardObject({ ...card, heroImageUrl: "https://rout.be/api/public/avatar?path=a/b.webp" }, "3388");
     expect(object.imageModulesData ?? []).toEqual([]);
-    expect(object.heroImage.sourceUri.uri).not.toContain("avatar");
+    expect(object.heroImage?.sourceUri.uri).not.toContain("avatar");
   });
   it("shows the official ROUT badge as logo, identical for every member", () => {
-    const a = googleCardObject(card, "3388").logo.sourceUri.uri;
-    const b = googleCardObject({ ...card, handle: "other", hexBackgroundColor: "#123456" }, "3388").logo.sourceUri.uri;
+    const a = googleCardClass(card, "3388").programLogo.sourceUri.uri;
+    const b = googleCardClass({ ...card, handle: "other", hexBackgroundColor: "#123456" }, "3388").programLogo.sourceUri.uri;
     expect(a).toBe("https://rout.be/api/wallet/render/logo/131211/rout.png");
     expect(b).toBe(a);
   });
   it("versions clean public PNG URLs when card data changes", () => {
     const object = googleCardObject(card, "3388");
-    const uri = new URL(object.heroImage.sourceUri.uri);
+    const uri = new URL(object.heroImage!.sourceUri.uri);
     expect(uri.search).toBe("");
     expect(uri.pathname.endsWith("/hero.png")).toBe(true);
     expect(googleArtworkVersion({ ...card, displayName: "Changed" })).not.toBe(googleArtworkVersion(card));
@@ -64,7 +71,7 @@ describe("Google pass follows the whole profile palette", () => {
   });
   it("logo tone keeps readable contrast on the harmonised background", async () => {
     const { contrastRatio, LOGO_TONES, pickLogoTone } = await import("./wallet-color");
-    const bg = googleCardObject(card, "3388").hexBackgroundColor;
+    const bg = googleCardClass(card, "3388").hexBackgroundColor;
     expect(contrastRatio(LOGO_TONES[pickLogoTone(bg)], bg)).toBeGreaterThanOrEqual(4.5);
   });
   it("hero carries no text; only verified members get the check seal", async () => {
