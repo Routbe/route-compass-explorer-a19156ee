@@ -2,10 +2,10 @@ import { saturation, walletCardColor } from "./wallet-art";
 import { cardNumberFromDigest } from "./card-number";
 import { createLocalizedString, walletText } from "./wallet-i18n";
 import { GOOGLE_PASS_DESIGN, googleArtworkVersion, googlePassBackground } from "./google-premium-art";
-import type { GoogleCardClaims, GoogleGenericObject } from "./google-pass-types";
+import type { GoogleCardClaims, GoogleLoyaltyClass, GoogleLoyaltyObject } from "./google-pass-types";
 /**
  * Wallet pass content for profiles and events (pure, browser-safe).
- * Apple (.pkpass pass.json) and Google (Generic pass object) are built from the
+ * Apple (.pkpass pass.json) and Google (Loyalty class + object) are built from the
  * same subject so both wallets always show the same card.
  */
 
@@ -113,24 +113,31 @@ export function applePassJson(s: WalletSubject, cfg: { passTypeId: string; teamI
   };
 }
 
-/** Google Wallet "Save to Google Wallet" JWT claims (class + object inline). */
-export function googleSaveClaims(s: WalletSubject, cfg: { issuerId: string; serviceAccountEmail: string; origins: string[] }) {
-  const classId = `${cfg.issuerId}.rout_${s.kind}`;
-  const object = {
-    id: `${cfg.issuerId}.${walletSerial(s).replace(/[^a-zA-Z0-9._-]/g, "_")}`,
-    classId,
+const same = (value: string) => createLocalizedString({ nl: value, en: value, fr: value, de: value });
+
+/** Google Wallet "Save to Google Wallet" JWT claims for events (Loyalty class + object inline). */
+export function googleSaveClaims(s: WalletSubject, cfg: { issuerId: string; serviceAccountEmail: string; origins: string[] }): GoogleCardClaims {
+  const klass: GoogleLoyaltyClass = {
+    id: `${cfg.issuerId}.rout_${s.kind}_loyalty`,
+    issuerName: "ROUT",
+    programName: s.kind === "event" ? "ROUT Event" : "ROUT",
+    programLogo: { sourceUri: { uri: googleLogoUrl(s) }, contentDescription: same("ROUT") },
+    hexBackgroundColor: GOOGLE_PASS_DESIGN.background,
+    reviewStatus: "UNDER_REVIEW",
+    localizedAccountNameLabel: walletText(s.kind === "event" ? (s.accessClaim === true ? "event" : "informational") : "profile"),
+  };
+  const object: GoogleLoyaltyObject = {
+    id: `${cfg.issuerId}.loyalty_${walletSerial(s).replace(/[^a-zA-Z0-9._-]/g, "_")}`,
+    classId: klass.id,
     state: "ACTIVE",
-    hexBackgroundColor: "#111111",
-    cardTitle: createLocalizedString({ nl: "ROUT", en: "ROUT", fr: "ROUT", de: "ROUT" }),
-    header: createLocalizedString({ nl: clip(s.title, 60), en: clip(s.title, 60), fr: clip(s.title, 60), de: clip(s.title, 60) }),
-    subheader: walletText(s.kind === "event" ? (s.accessClaim === true ? "event" : "informational") : "profile"),
+    accountName: clip(s.title, 60),
     textModulesData: [
       { id: "subtitle", localizedHeader: s.kind === "event" ? walletText("when") : walletText("profile"), body: clip(s.subtitle, 120) },
       ...(s.venue ? [{ id: "venue", localizedHeader: walletText("venue"), body: clip(s.venue, 120) }] : []),
     ],
     // Zie applePassJson: een barcode is een toegangsclaim en vereist bewijs.
     ...(s.kind !== "event" || s.accessClaim === true
-      ? { barcode: { type: "QR_CODE", value: s.url, alternateText: clip(s.url.replace(/^https?:\/\//, ""), 60) } }
+      ? { barcode: { type: "QR_CODE" as const, value: s.url, alternateText: clip(s.url.replace(/^https?:\/\//, ""), 60) } }
       : {}),
     linksModuleData: { uris: [{ uri: s.url, localizedDescription: walletText("open"), id: "open" }] },
   };
@@ -139,7 +146,7 @@ export function googleSaveClaims(s: WalletSubject, cfg: { issuerId: string; serv
     aud: "google",
     typ: "savetowallet",
     origins: cfg.origins,
-    payload: { genericClasses: [{ id: classId }], genericObjects: [object] },
+    payload: { loyaltyClasses: [klass], loyaltyObjects: [object] },
   };
 }
 
@@ -240,33 +247,59 @@ export function walletHeroUrl(card: Pick<WalletCardPayload, "url" | "handle" | "
   return new URL(`/api/wallet/render/${encodeURIComponent(walletCardId(card))}/hero.png?v=${h.toString(36)}`, card.url).href;
 }
 
-/** Google Generic object for a ROUT Card. */
-export function googleCardObject(card: WalletCardPayload, issuerId: string, classId = `${issuerId}.rout_card`): GoogleGenericObject {
-  const i18n = (value: string) => {
-    const localized = createLocalizedString({ nl: value, en: value, fr: value, de: value }, "nl");
-    return { ...localized, defaultValue: { ...localized.defaultValue, language: "nl-NL" } };
-  };
+const nlString = (value: string) => {
+  const localized = createLocalizedString({ nl: value, en: value, fr: value, de: value }, "nl");
+  return { ...localized, defaultValue: { ...localized.defaultValue, language: "nl-NL" } };
+};
+
+/** Public @address shown as the primary line on the card face. */
+export const walletHandleLabel = (card: Pick<WalletCardPayload, "space" | "handle">) => `${card.space === "alias" ? "@u/" : "@"}${card.handle}`;
+
+/**
+ * Loyalty class for one tile colour. Google only takes the tile colour and logo
+ * from the class, so every harmonised colour gets its own class: `<prefix>_<hex>`.
+ * The prefix is GOOGLE_WALLET_CLASS_ID when set, otherwise `<issuer>.rout_card`.
+ */
+export function googleCardClass(card: WalletCardPayload, issuerId: string, classPrefix = `${issuerId}.rout_card`): GoogleLoyaltyClass {
+  const tile = googlePassBackground(card).toLowerCase();
   return {
-    id: `${issuerId}.${card.serial.replace(/[^a-zA-Z0-9._-]/g, "_")}`,
-    classId,
+    id: `${classPrefix}_${tile.slice(1)}`,
+    issuerName: "ROUT",
+    programName: "ROUT Card",
+    programLogo: { sourceUri: { uri: googleLogoUrl(card) }, contentDescription: nlString("ROUT") },
+    hexBackgroundColor: tile,
+    reviewStatus: "UNDER_REVIEW",
+    localizedAccountNameLabel: nlString("Handle"),
+    localizedAccountIdLabel: walletText("cardNumber"),
+    classTemplateInfo: { cardTemplateOverride: { cardRowTemplateInfos: [
+      // Primary line: the member's @handle. Second line: name + card number.
+      { oneItem: { item: { firstValue: { fields: [{ fieldPath: "object.accountName" }] } } } },
+      { twoItems: {
+        startItem: { firstValue: { fields: [{ fieldPath: "object.textModulesData['name']" }] } },
+        endItem: { firstValue: { fields: [{ fieldPath: "object.accountId" }] } },
+      } },
+    ] } },
+  };
+}
+
+/** Google Loyalty object for a ROUT Card; the long security texts live only in the details. */
+export function googleCardObject(card: WalletCardPayload, issuerId: string, classPrefix?: string): GoogleLoyaltyObject {
+  return {
+    id: `${issuerId}.loyalty_${card.serial.replace(/[^a-zA-Z0-9._-]/g, "_")}`,
+    classId: googleCardClass(card, issuerId, classPrefix).id,
     state: "ACTIVE",
-    hexBackgroundColor: googlePassBackground(card),
-    logo: { sourceUri: { uri: googleLogoUrl(card) }, contentDescription: i18n("ROUT") },
-    cardTitle: i18n("ROUT"),
-    // Big line = the member's name; the small line above it = their public address.
-    header: i18n(card.displayName),
-    subheader: i18n(`${card.space === "alias" ? "@u/" : "@"}${card.handle}`),
+    accountName: walletHandleLabel(card),
+    accountId: card.sovereignId,
     textModulesData: [
       { id: "name", localizedHeader: walletText("name"), body: card.displayName },
-      { id: "card", localizedHeader: walletText("cardNumber"), body: card.sovereignId },
-      { id: "hub", localizedHeader: i18n(WALLET_DEFAULT_SUBHEADER), body: card.url },
+      { id: "hub", localizedHeader: nlString(WALLET_DEFAULT_SUBHEADER), body: card.url },
       { id: "authentication", localizedHeader: walletText("authentication"), localizedBody: walletText("authenticationBody") },
       { id: "sovereignty", localizedHeader: walletText("sovereignty"), localizedBody: walletText("sovereigntyBody") },
       { id: "infrastructure", localizedHeader: walletText("infrastructure"), localizedBody: walletText("infrastructureBody") },
       { id: "emergency", localizedHeader: walletText("emergency"), localizedBody: walletText("emergencyBody") },
     ],
     barcode: { type: "QR_CODE", value: card.qrValue, alternateText: clip(card.url.replace(/^https?:\/\//, ""), 60) },
-    heroImage: { sourceUri: { uri: googleCardArtworkUrl(card, "hero") }, contentDescription: i18n(`ROUT Card · ${card.displayName}`) },
+    heroImage: { sourceUri: { uri: googleCardArtworkUrl(card, "hero") }, contentDescription: nlString(`ROUT Card · ${card.displayName}`) },
     linksModuleData: { uris: [{ uri: card.url, localizedDescription: walletText("audit"), id: "open" }] },
   };
 }
@@ -276,16 +309,12 @@ export function googleCardArtworkUrl(card: WalletCardPayload, kind: "hero" = "he
 }
 
 export function googleCardSaveClaims(card: WalletCardPayload, cfg: { issuerId: string; serviceAccountEmail: string; origins: string[]; classId?: string }): GoogleCardClaims {
-  const object = googleCardObject(card, cfg.issuerId, cfg.classId);
   return {
     iss: cfg.serviceAccountEmail,
     aud: "google",
     typ: "savetowallet",
     origins: cfg.origins,
-    payload: { genericClasses: [{ id: object.classId, classTemplateInfo: { cardTemplateOverride: { cardRowTemplateInfos: [
-      { oneItem: { item: { firstValue: { fields: [{ fieldPath: "object.textModulesData['card']" }] } } } },
-      { oneItem: { item: { firstValue: { fields: [{ fieldPath: "object.textModulesData['hub']" }] } } } },
-    ] } } }], genericObjects: [object] },
+    payload: { loyaltyClasses: [googleCardClass(card, cfg.issuerId, cfg.classId)], loyaltyObjects: [googleCardObject(card, cfg.issuerId, cfg.classId)] },
   };
 }
 
