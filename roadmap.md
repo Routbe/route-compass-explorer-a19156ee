@@ -104,3 +104,4 @@
 - [ ] Wallet: ROUT card first (NFC, freeze/block, physical order later); "Profielkaart" shows profile-hub cards.
 - [ ] Card front: big QR rout.be/<user>/<4 digits changing every 10 min>; back: small QR + NFC with a very long secret link.
 - [ ] Identity layer: SUPREME (server router) and OMEGA (no server mapping, client ZK proofs) contradict each other; needs owner choice.
+- [ ] Identity uploads (PRF derivation + E2EE of birth date/names + ZK/VC, decoupled tables; Shamir recovery vault, service-worker integrity, OHTTP): needs owner decision — encrypting birth dates breaks the server-side minor/parent-consent checks, and a service worker cannot protect against a server that serves a changed worker.
