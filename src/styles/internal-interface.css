@@ -159,6 +159,15 @@
     outline-offset: 2px;
   }
 
+  /* Secondary keys: a quiet 1px ledge that presses flat, like a lower-profile key. */
+  .spatial-button:is([data-spatial-control="outline"], [data-spatial-control="soft"], [data-spatial-control="secondary"]):not([data-spatial-size="icon"]) {
+    box-shadow: 0 1px 0 0 var(--m-edge) !important;
+  }
+  .spatial-button:is([data-spatial-control="outline"], [data-spatial-control="soft"], [data-spatial-control="secondary"], [data-spatial-control="ghost"]):not(:disabled):active {
+    translate: 0 1px;
+    box-shadow: 0 0 0 0 transparent !important;
+  }
+
   /* 5 — Keycaps: secondary keys (share, studio pills, status chips) rest on a
      1px ledge and travel 1px; primary keys keep the 2px ledge above. */
   [data-tactile] {
