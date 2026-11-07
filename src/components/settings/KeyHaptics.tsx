@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 const KEY_SELECTOR =
-  '[data-tactile], .spatial-button:is([data-spatial-control="default"],[data-spatial-control="destructive"],[data-spatial-control="matcha"])';
+  '[data-tactile], .wallet-vault-key, .spatial-button:is([data-spatial-control="default"],[data-spatial-control="destructive"],[data-spatial-control="matcha"])';
 
 /** Short "thock" on phones when a keycap is pressed — internal mechanical UI only. */
 export function KeyHaptics() {

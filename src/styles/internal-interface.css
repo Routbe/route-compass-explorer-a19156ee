@@ -210,3 +210,54 @@
 @media (prefers-reduced-motion: reduce) {
   :root[data-workspace-ui="internal"][data-theme="mechanical"] { --m-ease: steps(1, end); --m-key-ease: steps(1, end); }
 }
+
+/* Wallet vault (3-card export): hard block shadows in every theme, no soft shadows.
+   The Sovereign Key is pitch black with a heavier 4px ledge: it is a hardware key. */
+.wallet-vault { display: grid; gap: 0.75rem; }
+.wallet-vault-card {
+  --vault-edge: hsl(var(--foreground));
+  --vault-press: 2px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--vault-edge);
+  border-radius: 1rem;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  box-shadow: var(--vault-press) var(--vault-press) 0 0 var(--vault-edge);
+}
+.wallet-vault-card[data-kind="key"] {
+  --vault-ink: oklch(0.12 0 0);
+  --vault-press: 4px;
+  border: 2px solid var(--vault-ink);
+  background: var(--vault-ink);
+  color: oklch(0.97 0 0);
+  box-shadow: 4px 4px 0 0 hsl(var(--foreground) / 0.85);
+  background-image: repeating-linear-gradient(0deg, oklch(1 0 0 / 0.035) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, oklch(1 0 0 / 0.035) 0 1px, transparent 1px 6px);
+}
+.wallet-vault-icon {
+  display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; flex-shrink: 0;
+  border: 1px solid currentColor; border-radius: 999px;
+}
+.wallet-vault-tag { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.75; }
+.wallet-vault-note { font-size: 0.75rem; opacity: 0.75; }
+.wallet-vault-warning { display: flex; gap: 0.5rem; align-items: center; font-size: 0.75rem; font-weight: 600; color: oklch(0.85 0.16 85); }
+.wallet-vault-keys { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.wallet-vault-key {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem;
+  min-height: 2.75rem; padding: 0 1rem; border-radius: 999px;
+  font-size: 0.8125rem; font-weight: 600;
+  border: 1px solid var(--vault-edge);
+  background: hsl(var(--foreground)); color: hsl(var(--background));
+  box-shadow: var(--vault-press) var(--vault-press) 0 0 var(--vault-edge);
+  transition: translate 75ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 75ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.wallet-vault-card[data-kind="key"] .wallet-vault-key {
+  --vault-edge: oklch(0.97 0 0);
+  background: oklch(0.97 0 0); color: oklch(0.12 0 0);
+  border-width: 2px;
+}
+.wallet-vault-key:not(:disabled):active { translate: var(--vault-press) var(--vault-press); box-shadow: 0 0 0 0 transparent; }
+.wallet-vault-key:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+.wallet-vault-key:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .wallet-vault-key { transition: none; } }
