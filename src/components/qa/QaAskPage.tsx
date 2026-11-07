@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, MessageCircleQuestion } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { profileImageSrc } from "@/lib/image-proxy-rules";
-import { promptHeadline, storedPromptLabel } from "@/lib/qa/prompts";
+import { promptHeadline } from "@/lib/qa/prompts";
 import { RoutLogo } from "@/components/RoutLogo";
 import { QaAskForm } from "./QaAskForm";
 import { QaStoryRing } from "./QaStoryRing";
@@ -10,7 +10,10 @@ import { qaPaths, useQaPublic, type QaSpace } from "./useQaPublic";
 import type { QaPublic } from "@/lib/qa/types";
 import { QA_PAGE_SURFACE, qaDesign } from "@/lib/qa/design";
 
-/** Full-screen, distraction-free anonymous message page (/u/<handle>/ask, /<handle>/ask). */
+/**
+ * Full-screen anonymous message page (/u/<handle>/ask, /<handle>/ask): only the
+ * person, the question and the send button — no hub widgets, no answer feed.
+ */
 export function QaAskPage({ handle, space, initial }: { handle: string; space: QaSpace; initial: QaPublic | null }) {
   const { t } = useI18n();
   const live = useQaPublic(handle, space);
@@ -40,7 +43,7 @@ export function QaAskPage({ handle, space, initial }: { handle: string; space: Q
       className="dark relative min-h-[100dvh] overflow-x-hidden bg-gradient-to-b from-story-from to-story-to text-foreground"
       style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)", paddingBottom: "max(env(safe-area-inset-bottom), 1.5rem)" }}
     >
-      <div className="mx-auto flex w-full max-w-md flex-col px-5">
+      <div className="mx-auto flex min-h-[calc(100dvh-2.5rem)] w-full max-w-md flex-col px-5">
         <header className="flex items-center justify-between py-2">
           {qa.showProfileLink && <a href={paths.profile} className="inline-flex min-h-10 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" aria-hidden /> {t("pages.qa.ask.back")}
@@ -68,28 +71,9 @@ export function QaAskPage({ handle, space, initial }: { handle: string; space: Q
           )}
         </section>
 
-        <a href="/claim" className="mx-auto mt-6 inline-flex min-h-11 items-center justify-center rounded-full border border-border px-5 text-sm font-semibold hover:bg-card">
+        <a href="/claim" className="mx-auto mt-auto pt-10 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
           {t("pages.qa.ask.getYours")}
         </a>
-
-        <section className="mt-10" aria-labelledby="qa-answers">
-          <h2 id="qa-answers" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t("pages.qa.ask.answersTitle")}</h2>
-          {qa.answers.length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">{t("pages.qa.ask.noAnswers")}</p>
-          ) : (
-            <ul className="mt-3 space-y-3">
-              {qa.answers.map((a) => (
-                <li key={a.id} className="overflow-hidden rounded-2xl border border-border bg-card" style={qaDesign(design, "answers", surface)}>
-                  <div className="bg-gradient-to-br from-story-ring/25 to-story-ring-2/10 px-4 py-3">
-                    {a.prompt && <p className="text-[11px] text-muted-foreground">{storedPromptLabel(a.prompt, t)}</p>}
-                    <p className="break-words font-medium">{a.body}</p>
-                  </div>
-                  <p className="whitespace-pre-line break-words px-4 py-3 text-sm text-muted-foreground">{a.answer}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
     </main>
   );

@@ -14,7 +14,10 @@ type Busy = `${WalletPassType}:${"google" | "apple"}` | null;
  * are exported as three separate passes, so a QR card never carries an NFC token
  * and the NFC key never shows a QR or any profile data.
  */
-export function WalletVault() {
+export type VaultKind = "public" | "stealth" | "key";
+
+export function WalletVault({ only }: { /** Show just these passes (the wallet page splits ROUT card and profile cards). */ only?: VaultKind[] } = {}) {
+  const show = (k: VaultKind) => !only || only.includes(k);
   const { t } = useTranslation();
   const load = useServerFn(getMyWalletVault);
   const issue = useServerFn(createVaultPass);
@@ -84,21 +87,21 @@ export function WalletVault() {
         <p className="text-xs text-muted-foreground">{t("vault.lead")}</p>
       </header>
 
-      <VaultCard kind="public" icon={<QrCode className="h-5 w-5" aria-hidden />} title={t("vault.public.title")} tag={t("vault.public.tag")} body={t("vault.public.body")}>
+      {show("public") && <VaultCard kind="public" icon={<QrCode className="h-5 w-5" aria-hidden />} title={t("vault.public.title")} tag={t("vault.public.tag")} body={t("vault.public.body")}>
         {keys("PUBLIC_PROFILE", !!v?.google && !!root, { ok: !!v?.apple && !!root, href: `/api/wallet/profile/${encodeURIComponent(root ?? "")}?type=apple&space=root`, file: `rout-${root}.pkpass` })}
         {v && !v.google && !v.apple && <p className="wallet-vault-note">{t("vault.offline")}</p>}
-      </VaultCard>
+      </VaultCard>}
 
-      <VaultCard kind="stealth" icon={<EyeOff className="h-5 w-5" aria-hidden />} title={t("vault.stealth.title")} tag={t("vault.stealth.tag")} body={t("vault.stealth.body")}>
+      {show("stealth") && <VaultCard kind="stealth" icon={<EyeOff className="h-5 w-5" aria-hidden />} title={t("vault.stealth.title")} tag={t("vault.stealth.tag")} body={t("vault.stealth.body")}>
         {keys("STEALTH", !!v?.google && !!alias, { ok: !!v?.apple && !!alias, href: `/api/wallet/profile/${encodeURIComponent(alias ?? "")}?type=apple&space=alias`, file: `rout-u-${alias}.pkpass` })}
         {v && !alias && <p className="wallet-vault-note">{t("vault.stealth.none")}</p>}
-      </VaultCard>
+      </VaultCard>}
 
-      <VaultCard kind="key" icon={<KeyRound className="h-5 w-5" aria-hidden />} title={t("vault.key.title")} tag={t("vault.key.tag")} body={t("vault.key.body")}>
+      {show("key") && <VaultCard kind="key" icon={<KeyRound className="h-5 w-5" aria-hidden />} title={t("vault.key.title")} tag={t("vault.key.tag")} body={t("vault.key.body")}>
         <p className="wallet-vault-warning"><TriangleAlert className="h-4 w-4 shrink-0" aria-hidden /> {t("vault.key.warning")}</p>
         {keys("SMART_TAP_KEY", !!v?.keyGoogle, { ok: !!v?.keyApple, href: "/api/wallet/key", file: "rout-sovereign-key.pkpass" })}
         {v && !keyReady && <p className="wallet-vault-note">{t("vault.key.pending")}</p>}
-      </VaultCard>
+      </VaultCard>}
     </section>
   );
 }

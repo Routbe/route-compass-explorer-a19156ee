@@ -25,6 +25,11 @@ export const Route = createFileRoute("/$username_/$slug")({
             return rateLimitedResponse(error.retryAfterSeconds);
           }
         }
+        // Front QR of the ROUT Card: rout.be/<handle>/<4 digits>. Scanning with a phone always opens
+        // the public profile; partners check freshness via /api/public/card-check.
+        if (/^\d{4}$/.test(params.slug) && /^[\w.-]{1,100}$/.test(handle)) {
+          return new Response(null, { status: 302, headers: { location: `/${handle}`, "cache-control": "no-store" } });
+        }
         return next();
       },
     },

@@ -9,7 +9,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { configureTextBuilder } from "troika-three-text";
-import { BACK_QR, CARD_RATIO, FACE_H, FACE_W, type CardFaces, type QrBox } from "./card-faces";
+import { BACK_QR, CARD_RATIO, FACE_H, FACE_W, FRONT_TEXT_Y, type CardFaces, type QrBox } from "./card-faces";
 import { MAX_TILT_RAD, SPIN_SNAP_SPEED, clampDragPitch, clampTilt, decaySpin, isBackFace, lerpDamp, nearestFace, stepSpring, tiltTarget, type Spring } from "./card-physics";
 import { createSecurityMaterial } from "./card-shader";
 import { captureCardSnapshot } from "./card-snapshot";
@@ -302,9 +302,9 @@ function Card({ faces, finish, pbr, flipped, tilt, live, zoom, secure, onFlip, d
     const wm = watermark.current;
     if (wm) {
       // Rigidly printed: every element stays fixed to the card body.
-      wm.position.x = 0;
-      wm.position.y = H * 0.29;
-      wm.rotation.z = -0.12;
+      wm.position.x = cx(150);
+      wm.position.y = cy(960);
+      wm.rotation.z = 0;
     }
     for (const material of materials) {
     const u = material.uniforms;
@@ -345,8 +345,8 @@ function Card({ faces, finish, pbr, flipped, tilt, live, zoom, secure, onFlip, d
       <mesh geometry={face} position={[0, 0, FRONT_Z]} material={security} />
       <mesh geometry={face} position={[0, 0, BACK_Z]} rotation={[0, Math.PI, 0]} material={backSecurity} />
 
-      <group ref={watermark} position={[0, H * 0.29, FRONT_Z + 0.0018]}>
-        <Text font={FONT} fontSize={0.145} sdfGlyphSize={128} letterSpacing={0} anchorX="center" anchorY="middle"
+      <group ref={watermark} position={[cx(150), cy(960), FRONT_Z + 0.0018]}>
+        <Text font={FONT} fontSize={0.08} sdfGlyphSize={128} letterSpacing={0} anchorX="center" anchorY="middle"
           onSync={() => glyphs.current.add("watermark")}>
           ROUT
           <meshPhysicalMaterial color={text.fg} metalness={0.65} roughness={0.22} iridescence={1}
@@ -355,9 +355,9 @@ function Card({ faces, finish, pbr, flipped, tilt, live, zoom, secure, onFlip, d
       </group>
 
       {/* Front: SDF name / handle / tagline and micro-text border. */}
-      <Embossed y={cy(FACE_H * 0.7) + 0.012} size={0.075} color={text.fg}>{text.displayName}</Embossed>
-      <Embossed y={cy(FACE_H * 0.7 + 48) + 0.01} size={0.042} color={text.fg}>{`@${text.handle}`}</Embossed>
-      <Embossed y={cy(FACE_H * 0.7 + 92) + 0.008} size={0.03} color={text.fg}>{text.subheader}</Embossed>
+      <Embossed y={cy(FRONT_TEXT_Y.name) + 0.01} size={0.064} color={text.fg}>{text.displayName}</Embossed>
+      <Embossed y={cy(FRONT_TEXT_Y.handle) + 0.009} size={0.04} color={text.fg}>{`@${text.handle}`}</Embossed>
+      <Embossed y={cy(FRONT_TEXT_Y.sub) + 0.007} size={0.028} color={text.fg}>{text.subheader}</Embossed>
       <group position={[0, 0, FRONT_Z + 0.0008]}>
         <MicroBorder color={text.fg} onSync={(side) => glyphs.current.add(`front-${side}`)} />
       </group>
