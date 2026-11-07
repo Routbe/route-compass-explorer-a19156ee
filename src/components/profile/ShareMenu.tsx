@@ -120,6 +120,7 @@ export function ShareMenu({ url, handle, name, bio, avatarUrl, showNfc, qrStyle,
         <DropdownMenuTrigger asChild>
           <button
             type="button"
+            data-tactile=""
             aria-label={t("profile.shareLabel")}
             title={t("profile.shareLabel")}
             className={cn(iconOnly ? "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border transition-colors hover:bg-muted" : "inline-flex h-9 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium transition-colors hover:bg-muted", className)}

@@ -186,5 +186,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root[data-workspace-ui="internal"][data-theme="mechanical"] { --m-ease: steps(1, end); }
+  :root[data-workspace-ui="internal"][data-theme="mechanical"] { --m-ease: steps(1, end); --m-key-ease: steps(1, end); }
 }
