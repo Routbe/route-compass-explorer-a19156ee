@@ -68,3 +68,12 @@
 - [ ] "Weergave" section first on account settings with live preview cards; compact switch in menus.
 - [ ] Dev-only material lab for signed-out visual verification; tests; Chromium verification; homepage unchanged.
 - [ ] Account-level sync of the choice: blocked by original ROUT sign-in configuration (device + cookie works now).
+
+## Current request: Google Wallet ROUT Card as Loyalty pass (7 Nov 2026)
+
+- [x] Check Google's official Loyalty spec: tile colour and logo exist only on the shared class (LoyaltyClass), not per card (LoyaltyObject).
+- [ ] Decide with owner how each member keeps their own tile colour under Loyalty (waiting on answer).
+- [ ] Switch save link + existing-pass refresh from generic to loyalty class/object.
+- [ ] Handle in the main card line, long security texts only in the detail section.
+- [ ] Logo 660x660 / 17.5% padding and hero 1032x812 kept; image responses get open access + one-year immutable caching.
+- [ ] Tests for the new payload; real saved pass on a phone blocked by missing Google Wallet keys.
