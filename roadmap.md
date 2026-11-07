@@ -91,3 +91,16 @@
 - [ ] Rotating Aztec code for the alias card: needs Google rotating-barcode (TOTP) setup.
 - [ ] Owner view of the export inside the ROUT Card screen: blocked by sign-in keys (BETTER_AUTH_SECRET).
 
+
+## Current request: keys, sharing, ask page, wallet card, identity layer (7 Nov 2026)
+
+- [ ] Mobile check: buttons must never stick out of rounded button groups/frames.
+- [ ] Mechanical: high-end keycaps (depth, shadow, press), still calm, rounded, strong colours.
+- [ ] Move the Mechanical/Glass switch out of the menus into Account & Beveiliging.
+- [ ] "Wat wil je delen": official Snapchat, Instagram and WhatsApp logos.
+- [ ] Sharing pre-fills the link (Snapchat attachment, WhatsApp text; Instagram copies the link).
+- [ ] Dedicated anonymous-question page with nothing else on it.
+- [ ] ROUT card appears in one go, never first without its design.
+- [ ] Wallet: ROUT card first (NFC, freeze/block, physical order later); "Profielkaart" shows profile-hub cards.
+- [ ] Card front: big QR rout.be/<user>/<4 digits changing every 10 min>; back: small QR + NFC with a very long secret link.
+- [ ] Identity layer: SUPREME (server router) and OMEGA (no server mapping, client ZK proofs) contradict each other; needs owner choice.
