@@ -52,7 +52,16 @@ export function subscribeUiPreferences(listener: Listener) {
     listening = true;
     window.addEventListener("storage", event => {
       if (event.key !== null && event.key !== INTERFACE_THEME_KEY && event.key !== COLOR_MODE_KEY) return;
-      snapshot = readDevice();
+      if (event.key === null) {
+        // Storage was cleared in another tab: drop the cookie mirror too, so the
+        // server and this tab fall back to the default instead of a stale choice.
+        const gone = "; path=/; max-age=0; samesite=lax";
+        document.cookie = `${MATERIAL_COOKIE}=${gone}`;
+        document.cookie = `${MODE_COOKIE}=${gone}`;
+        snapshot = { ...DEFAULT_UI_PREFERENCES };
+      } else {
+        snapshot = readDevice();
+      }
       emit();
     });
   }

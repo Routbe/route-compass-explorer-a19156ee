@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_INTERFACE_THEME, isInternalInterface, parseInterfaceTheme } from "./internal-interface-theme";
 
 describe("internal interface policy", () => {
-  it("defaults to Sovereign", () => expect(DEFAULT_INTERFACE_THEME).toBe("sovereign"));
-  it("retains Creator and rejects unknown stored choices", () => {
-    expect(parseInterfaceTheme("creator")).toBe("creator");
-    expect(parseInterfaceTheme(null)).toBe("sovereign");
-    expect(parseInterfaceTheme("glass")).toBe("sovereign");
+  it("defaults to Mechanical", () => expect(DEFAULT_INTERFACE_THEME).toBe("mechanical"));
+  it("keeps Glass, maps legacy keys and rejects unknown stored choices", () => {
+    expect(parseInterfaceTheme("glass")).toBe("glass");
+    expect(parseInterfaceTheme("creator")).toBe("glass");
+    expect(parseInterfaceTheme("sovereign")).toBe("mechanical");
+    expect(parseInterfaceTheme(null)).toBe("mechanical");
+    expect(parseInterfaceTheme("neon")).toBe("mechanical");
   });
   it("never activates for the public homepage or member profiles", () => {
     for (const path of ["/", "/u/daniel", "/daniel", "/auth/sign-in", "/features/analytics"]) {
