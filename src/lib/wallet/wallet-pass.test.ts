@@ -31,15 +31,16 @@ describe("wallet passes", () => {
   });
   it("Google pass is bound to the issuer and our own origin", () => {
     const c = googleSaveClaims({ ...event, accessClaim: true }, { issuerId: "338", serviceAccountEmail: "sa@x.iam", origins: ["https://rout.be"] });
-    expect(c.payload.genericObjects[0]!.id.startsWith("338.")).toBe(true);
-    expect(c.payload.genericObjects[0]!.barcode?.value).toBe("https://rout.be/event/summer");
+    expect(c.payload.loyaltyObjects[0]!.id.startsWith("338.")).toBe(true);
+    expect(c.payload.loyaltyObjects[0]!.barcode?.value).toBe("https://rout.be/event/summer");
+    expect(c.payload.loyaltyClasses[0]!.id).toBe(c.payload.loyaltyObjects[0]!.classId);
     expect(c.origins).toEqual(["https://rout.be"]);
   });
   it("Google event pass without proven booking is informational and barcodeless", () => {
     const c = googleSaveClaims(event, { issuerId: "338", serviceAccountEmail: "sa@x.iam", origins: ["https://rout.be"] });
-    const obj = c.payload.genericObjects[0]!;
+    const obj = c.payload.loyaltyObjects[0]!;
     expect("barcode" in obj).toBe(false);
-    expect(obj.subheader.translatedValues.map((value) => value.language).sort()).toEqual(["de", "fr", "nl"]);
+    expect(c.payload.loyaltyClasses[0]!.localizedAccountNameLabel?.translatedValues.map((value) => value.language).sort()).toEqual(["de", "fr", "nl"]);
   });
 });
 

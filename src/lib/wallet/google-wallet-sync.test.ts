@@ -15,7 +15,7 @@ function fakeGoogle(objectStatus: number, classStatus = 200) {
   const f = async (url: string, init?: RequestInit) => {
     calls.push({ method: init?.method ?? "GET", url, body: init?.body as string | undefined });
     if (url.includes("oauth2")) return Response.json({ access_token: "tok" });
-    if (url.includes("/genericClass")) return new Response("{}", { status: init?.method === "POST" ? 200 : classStatus });
+    if (url.includes("/loyaltyClass")) return new Response("{}", { status: init?.method === "POST" ? 200 : classStatus });
     return new Response("{}", { status: objectStatus });
   };
   return { f, calls };
@@ -27,10 +27,13 @@ describe("updating passes already saved in Google Wallet", () => {
     const r = await syncGoogleCard(card, "https://rout.be", await cfg(), f);
     expect(r).toEqual({ object: "updated", klass: "updated" });
     const put = calls.find((c) => c.method === "PUT")!;
-    expect(put.url).toContain("/genericObject/3388.");
+    expect(put.url).toContain("/loyaltyObject/3388.");
     const body = JSON.parse(put.body!);
-    expect(body.logo.sourceUri.uri).toBe("https://rout.be/api/wallet/render/logo/131211/rout.png");
     expect(body.heroImage.sourceUri.uri).toMatch(/\/hero\.png$/);
+    expect(body.accountName).toBe("@member");
+    const patch = calls.find((c) => c.method === "PATCH")!;
+    expect(patch.url).toContain("/loyaltyClass/3388.rout_card_");
+    expect(JSON.parse(patch.body!).programLogo.sourceUri.uri).toBe("https://rout.be/api/wallet/render/logo/131211/rout.png");
   });
   it("reports 'new' when the member never saved the card (the save link creates it)", async () => {
     const { f } = fakeGoogle(404);
@@ -39,7 +42,7 @@ describe("updating passes already saved in Google Wallet", () => {
   it("creates the class when it does not exist yet", async () => {
     const { f, calls } = fakeGoogle(404, 404);
     expect((await syncGoogleCard(card, "https://rout.be", await cfg(), f)).klass).toBe("created");
-    expect(calls.some((c) => c.method === "POST" && c.url.endsWith("/genericClass"))).toBe(true);
+    expect(calls.some((c) => c.method === "POST" && c.url.endsWith("/loyaltyClass"))).toBe(true);
   });
   it("never throws when Google refuses the key", async () => {
     const f = async () => Response.json({ error: "invalid_grant" }, { status: 400 });

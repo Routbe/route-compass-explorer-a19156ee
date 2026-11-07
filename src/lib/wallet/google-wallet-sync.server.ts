@@ -6,7 +6,7 @@
  * unless the object is updated through the Wallet REST API. This module does exactly that,
  * best-effort: any failure is reported but never blocks the save link.
  */
-import type { GoogleGenericObject } from "./google-pass-types";
+import type { GoogleLoyaltyClass, GoogleLoyaltyObject } from "./google-pass-types";
 import { googleCardSaveClaims, type GoogleWalletConfig, type WalletCardPayload } from "./wallet-pass";
 
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -42,22 +42,23 @@ async function accessToken(cfg: GoogleWalletConfig, f: FetchLike): Promise<strin
   return body.access_token;
 }
 
-/** Updates (or creates) the class and updates an already-saved object with the current design. */
+/** Updates (or creates) the Loyalty class for the tile colour and updates an already-saved object with the current design. */
 export async function syncGoogleCard(card: WalletCardPayload, origin: string, cfg: GoogleWalletConfig, f: FetchLike = fetch): Promise<WalletSyncResult> {
   const claims = googleCardSaveClaims(card, { issuerId: cfg.issuerId, serviceAccountEmail: cfg.serviceAccountEmail, origins: [origin], classId: cfg.classId });
-  const klass = claims.payload.genericClasses[0]!;
-  const object: GoogleGenericObject = claims.payload.genericObjects[0]!;
+  const klass: GoogleLoyaltyClass = claims.payload.loyaltyClasses[0]!;
+  const object: GoogleLoyaltyObject = claims.payload.loyaltyObjects[0]!;
   const result: WalletSyncResult = { object: "failed", klass: "failed" };
   try {
     const token = await accessToken(cfg, f);
     const call = (method: string, path: string, body: unknown) =>
       f(`${API}${path}`, { method, headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify(body) });
 
-    const cls = await call("PATCH", `/genericClass/${encodeURIComponent(klass.id)}`, klass);
+    // One class per tile colour: make sure the member's colour class exists before the object points at it.
+    const cls = await call("PATCH", `/loyaltyClass/${encodeURIComponent(klass.id)}`, klass);
     if (cls.ok) result.klass = "updated";
-    else if (cls.status === 404) result.klass = (await call("POST", "/genericClass", klass)).ok ? "created" : "failed";
+    else if (cls.status === 404) result.klass = (await call("POST", "/loyaltyClass", klass)).ok ? "created" : "failed";
 
-    const obj = await call("PUT", `/genericObject/${encodeURIComponent(object.id)}`, object);
+    const obj = await call("PUT", `/loyaltyObject/${encodeURIComponent(object.id)}`, object);
     if (obj.ok) result.object = "updated";
     else if (obj.status === 404) result.object = "new";
     else result.error = `object_${obj.status}`;

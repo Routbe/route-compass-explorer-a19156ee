@@ -13,6 +13,9 @@ it("independently verifies the edge RS256 Google Wallet Save claim", async () =>
   expect(verified.protectedHeader.alg).toBe("RS256");
   expect(verified.payload.typ).toBe("savetowallet");
   expect(verified.payload.origins).toEqual(["https://rout.be"]);
-  expect(verified.payload.payload).toMatchObject({ genericObjects: [{ classId: cfg.classId }] });
+  expect(verified.payload.payload).toMatchObject({ loyaltyObjects: [{ accountName: expect.stringMatching(/^@/) }] });
+  const claims = verified.payload.payload as { loyaltyClasses: { id: string }[]; loyaltyObjects: { classId: string }[] };
+  expect(claims.loyaltyObjects[0]!.classId).toBe(claims.loyaltyClasses[0]!.id);
+  expect(claims.loyaltyClasses[0]!.id.startsWith(`${cfg.classId}_`)).toBe(true);
   expect(result.saveUrl).toBe(`https://pay.google.com/gp/v/save/${result.jwt}`);
 });

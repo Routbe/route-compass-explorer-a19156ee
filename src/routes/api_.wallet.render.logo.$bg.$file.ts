@@ -16,6 +16,7 @@ export const Route = createFileRoute("/api_/wallet/render/logo/$bg/$file")({
     const { svgToPng } = await import("@/lib/og-render.server");
     const { walletOrigin } = await import("@/lib/wallet/wallet-payload.server");
     const png = await svgToPng(googlePremiumLogoSvg(`#${bg}`, tone), walletOrigin(), `#${bg}`, GOOGLE_PASS_DESIGN.logoSize);
-    return new Response(png as BodyInit, { headers: { "content-type": "image/png", "access-control-allow-origin": "*", "cache-control": "public, max-age=31536000, immutable", "x-content-type-options": "nosniff" } });
+    const { WALLET_IMAGE_HEADERS } = await import("@/lib/wallet/wallet-image-headers");
+    return new Response(png as BodyInit, { headers: WALLET_IMAGE_HEADERS });
   } } },
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { harmonizeProfileBackground } from "./wallet-color";
 import {
   appleCardPassJson,
+  googleCardClass,
   googleCardObject,
   sovereignIdFromDigest,
   walletCardPayload,
@@ -29,17 +30,34 @@ describe("ROUT Card wallet payload", () => {
     expect(alias.heroImageUrl).toBeNull();
   });
 
-  it("Google object carries handle, theme colour and a QR_CODE barcode", () => {
+  it("Google loyalty object carries the handle, card number and a QR_CODE barcode", () => {
     const o = googleCardObject(root, "3388000000000000000");
-    expect(o.classId).toBe("3388000000000000000.rout_card");
-    expect(o.header.defaultValue.value).toBe("Jona Zeno");
-    expect(o.subheader?.defaultValue.value).toBe("@jona");
-    // Neutral canvas is tinted with the accent: the closed pass is never flat grey.
-    expect(o.hexBackgroundColor).toBe(harmonizeProfileBackground(root.hexBackgroundColor, root.accentHex));
+    const tile = harmonizeProfileBackground(root.hexBackgroundColor, root.accentHex).toLowerCase();
+    expect(o.classId).toBe(`3388000000000000000.rout_card_${tile.slice(1)}`);
+    expect(o.accountName).toBe("@jona");
+    expect(o.accountId).toBe("ROUT-ABCD-1234");
     expect(o.barcode).toMatchObject({ type: "QR_CODE", value: "https://rout.be/@jona" });
-    expect(o.heroImage.sourceUri.uri).toMatch(/^https:\/\/rout\.be\/api\/wallet\/render\/jona\/[a-z0-9]+\/hero\.png$/);
-    expect(o.logo.sourceUri.uri).toBe("https://rout.be/api/wallet/render/logo/131211/rout.png");
+    expect(o.heroImage?.sourceUri.uri).toMatch(/^https:\/\/rout\.be\/api\/wallet\/render\/jona\/[a-z0-9]+\/hero\.png$/);
     expect(o.imageModulesData).toBeUndefined();
+    // Google rejects these on a loyalty object: colour and logo belong to the class.
+    expect("hexBackgroundColor" in o).toBe(false);
+    expect("logo" in o).toBe(false);
+  });
+
+  it("Google loyalty class per tile colour carries the colour and the ROUT logo", () => {
+    const k = googleCardClass(root, "3388");
+    // Neutral canvas is tinted with the accent: the closed pass is never flat grey.
+    expect(k.hexBackgroundColor).toBe(harmonizeProfileBackground(root.hexBackgroundColor, root.accentHex).toLowerCase());
+    expect(k.id).toBe(`3388.rout_card_${k.hexBackgroundColor.slice(1)}`);
+    expect(k.programLogo.sourceUri.uri).toBe("https://rout.be/api/wallet/render/logo/131211/rout.png");
+    const purple = walletCardPayload({ handle: "p", space: "root", displayName: null, tagline: null, themeBg: "#7026e1", accent: "#7026e1", avatarSrc: null }, base, "RT");
+    expect(googleCardClass(purple, "3388").id).not.toBe(k.id);
+    // Same colour, different member: one shared class.
+    expect(googleCardClass({ ...root, handle: "someone" }, "3388").id).toBe(k.id);
+  });
+
+  it("alias cards show the @u/ address as their primary line", () => {
+    expect(googleCardObject(alias, "3388").accountName).toBe("@u/studio");
   });
 
   it("Apple pass shows the same QR and colours as Google", () => {
@@ -71,7 +89,7 @@ describe("Google Wallet save link signing", () => {
     expect(saveUrl).toBe(`https://pay.google.com/gp/v/save/${jwt}`);
     const { payload, protectedHeader } = await jwtVerify(jwt, publicKey, { audience: "google", issuer: "sa@x.iam.gserviceaccount.com" });
     expect(protectedHeader.alg).toBe("RS256");
-    const obj = (payload as { payload: { genericObjects: { barcode: { value: string } }[] } }).payload.genericObjects[0];
+    const obj = (payload as { payload: { loyaltyObjects: { barcode: { value: string } }[] } }).payload.loyaltyObjects[0];
     expect(obj?.barcode.value).toBe("https://rout.be/@jona");
   });
 });
