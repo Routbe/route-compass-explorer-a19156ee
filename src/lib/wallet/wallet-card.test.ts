@@ -50,8 +50,10 @@ describe("ROUT Card wallet payload", () => {
     expect(k.hexBackgroundColor).toBe(harmonizeProfileBackground(root.hexBackgroundColor, root.accentHex).toLowerCase());
     expect(k.id).toBe(`3388.rout_card_${k.hexBackgroundColor.slice(1)}`);
     expect(k.programLogo.sourceUri.uri).toBe("https://rout.be/api/wallet/render/logo/131211/rout.png");
-    expect(googleCardClass(alias, "3388").id).not.toBe(k.id);
-    expect(alias.hexBackgroundColor).not.toBe(root.hexBackgroundColor);
+    const purple = walletCardPayload({ handle: "p", space: "root", displayName: null, tagline: null, themeBg: "#7026e1", accent: "#7026e1", avatarSrc: null }, base, "RT");
+    expect(googleCardClass(purple, "3388").id).not.toBe(k.id);
+    // Same colour, different member: one shared class.
+    expect(googleCardClass({ ...root, handle: "someone" }, "3388").id).toBe(k.id);
   });
 
   it("alias cards show the @u/ address as their primary line", () => {
