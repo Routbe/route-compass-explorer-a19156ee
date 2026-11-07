@@ -8,7 +8,7 @@
 
 /** Sleutels die altijd volledig geredacteerd worden (case-insensitive). */
 const SENSITIVE_KEY_RE =
-  /secret|token|key|authorization|password|credential|stripe|mollie|signature|session|cookie/i;
+  /secret|token|key|authorization|password|credential|stripe|mollie|signature|session|cookie|iban|bic|alias|holder|account_?number|sort_?code|routing|legal_?name|display_name/i;
 
 const EMAIL_RE = /([A-Za-z0-9._%+-])([A-Za-z0-9._%+-]*)(@)([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g;
 
