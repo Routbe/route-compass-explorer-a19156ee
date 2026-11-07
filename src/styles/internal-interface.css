@@ -1,8 +1,9 @@
 /*
  * Workspace materials (signed-in tools, Studio and QR only).
  * - glass: the imported cascade, untouched.
- * - mechanical: calm opaque surfaces, hairline edges, pill controls; only
- *   primary actions carry a crisp 2px block shadow and a 2px mechanical press.
+ * - mechanical: calm opaque surfaces, hairline edges, pill controls. Surfaces
+ *   stay flat; keys are real keycaps: a lit top edge, a solid key wall below,
+ *   a short contact shadow, and a press that travels exactly the wall height.
  * Member artwork (profiles, QR, exports, previews) is a scope limit and never restyled.
  */
 :root {
@@ -28,6 +29,22 @@
   --m-action-shadow: var(--m-press) var(--m-press) 0 0 oklch(0.12 0 0);
   --m-selected: hsl(var(--foreground));
   --m-selected-ink: hsl(var(--background));
+  /* Keycaps. Primary: strong colour cap on a darker wall of the same colour. */
+  --m-key-travel: 3px;
+  --m-key-wall: color-mix(in oklab, hsl(var(--primary)) 58%, oklch(0.1 0 0));
+  --m-key-top: linear-gradient(180deg, color-mix(in oklab, hsl(var(--primary)) 86%, oklch(1 0 0)) 0%, hsl(var(--primary)) 55%, color-mix(in oklab, hsl(var(--primary)) 92%, oklch(0 0 0)) 100%);
+  --m-key-lit: oklch(1 0 0 / 0.32);
+  --m-key-contact: oklch(0 0 0 / 0.26);
+  --m-key-ambient: oklch(0 0 0 / 0.18);
+  --m-key-shadow: inset 0 1px 0 0 var(--m-key-lit), 0 var(--m-key-travel) 0 0 var(--m-key-wall), 0 calc(var(--m-key-travel) + 2px) 5px -1px var(--m-key-contact), 0 10px 16px -10px var(--m-key-ambient);
+  --m-key-shadow-down: inset 0 1px 0 0 oklch(1 0 0 / 0.14), inset 0 2px 5px 0 oklch(0 0 0 / 0.22), 0 0 0 0 var(--m-key-wall), 0 1px 1px 0 var(--m-key-contact);
+  /* Secondary: neutral cap on a quiet wall, lower travel. */
+  --m-cap-travel: 2px;
+  --m-cap-wall: hsl(var(--foreground) / 0.2);
+  --m-cap-top: linear-gradient(180deg, hsl(var(--card)) 0%, color-mix(in oklab, hsl(var(--card)) 93%, hsl(var(--foreground))) 100%);
+  --m-cap-lit: oklch(1 0 0 / 0.85);
+  --m-cap-shadow: inset 0 1px 0 0 var(--m-cap-lit), 0 var(--m-cap-travel) 0 0 var(--m-cap-wall), 0 calc(var(--m-cap-travel) + 2px) 4px -1px oklch(0 0 0 / 0.14), 0 8px 12px -9px oklch(0 0 0 / 0.16);
+  --m-cap-shadow-down: inset 0 1px 3px 0 oklch(0 0 0 / 0.14), 0 0 0 0 var(--m-cap-wall), 0 1px 1px 0 oklch(0 0 0 / 0.1);
 }
 /* Black on black disappears: dark mode casts a dimmed light edge instead. */
 :root.dark[data-workspace-ui="internal"][data-theme="mechanical"] {
@@ -36,6 +53,13 @@
   --m-action-edge: hsl(var(--foreground) / 0.55);
   --m-action-shadow: var(--m-press) var(--m-press) 0 0 hsl(var(--foreground) / 0.32);
   --m-hover: hsl(var(--foreground) / 0.08);
+  --m-key-wall: color-mix(in oklab, hsl(var(--primary)) 52%, oklch(0 0 0));
+  --m-key-lit: oklch(1 0 0 / 0.22);
+  --m-key-contact: oklch(0 0 0 / 0.6);
+  --m-key-ambient: oklch(0 0 0 / 0.5);
+  --m-cap-wall: oklch(0 0 0 / 0.65);
+  --m-cap-lit: oklch(1 0 0 / 0.08);
+  --m-cap-top: linear-gradient(180deg, color-mix(in oklab, hsl(var(--card)) 90%, oklch(1 0 0)) 0%, hsl(var(--card)) 100%);
 }
 
 @scope (:root[data-workspace-ui="internal"][data-theme="mechanical"]) to ([data-profile-theme], [data-interface-artwork], .preview-sheet) {
@@ -88,13 +112,25 @@
     border: 1px solid var(--m-edge) !important;
     transition: background-color 120ms var(--m-ease), border-color 120ms var(--m-ease), color 120ms var(--m-ease), translate 75ms var(--m-key-ease), box-shadow 75ms var(--m-key-ease) !important;
   }
+  .spatial-button[data-spatial-control="default"]:not([data-spatial-size="icon"]) {
+    background-image: var(--m-key-top) !important;
+    border-color: var(--m-key-wall) !important;
+  }
+  .spatial-button[data-spatial-control="destructive"]:not([data-spatial-size="icon"]) {
+    --m-key-wall: color-mix(in oklab, hsl(var(--destructive)) 58%, oklch(0.1 0 0));
+    border-color: var(--m-key-wall) !important;
+  }
+  .spatial-button[data-spatial-control="matcha"]:not([data-spatial-size="icon"]) {
+    --m-key-wall: color-mix(in oklab, currentColor 30%, oklch(0.1 0 0));
+    border-color: var(--m-key-wall) !important;
+  }
   .spatial-button:is([data-spatial-control="default"], [data-spatial-control="destructive"], [data-spatial-control="matcha"]):not([data-spatial-size="icon"]) {
-    border-color: var(--m-action-edge) !important;
-    box-shadow: var(--m-action-shadow) !important;
+    box-shadow: var(--m-key-shadow) !important;
+    margin-bottom: var(--m-key-travel);
   }
   .spatial-button:is([data-spatial-control="default"], [data-spatial-control="destructive"], [data-spatial-control="matcha"]):not([data-spatial-size="icon"]):not(:disabled):not([aria-disabled="true"]):active {
-    translate: var(--m-press) var(--m-press);
-    box-shadow: 0 0 0 0 transparent !important;
+    translate: 0 var(--m-key-travel);
+    box-shadow: var(--m-key-shadow-down) !important;
   }
   .spatial-button:is([data-spatial-control="outline"], [data-spatial-control="soft"], [data-spatial-control="secondary"]) {
     background-color: var(--m-control) !important;
@@ -161,28 +197,47 @@
     outline-offset: 2px;
   }
 
-  /* Secondary keys: a quiet 1px ledge that presses flat, like a lower-profile key. */
+  /* Secondary keys: neutral caps, lower profile, 2px travel. Ghost keys only dip. */
   .spatial-button:is([data-spatial-control="outline"], [data-spatial-control="soft"], [data-spatial-control="secondary"]):not([data-spatial-size="icon"]) {
-    box-shadow: 0 1px 0 0 var(--m-edge) !important;
+    background-image: var(--m-cap-top) !important;
+    border-color: var(--m-edge) !important;
+    box-shadow: var(--m-cap-shadow) !important;
+    margin-bottom: var(--m-cap-travel);
   }
-  .spatial-button:is([data-spatial-control="outline"], [data-spatial-control="soft"], [data-spatial-control="secondary"], [data-spatial-control="ghost"]):not(:disabled):active {
+  .spatial-button:is([data-spatial-control="outline"], [data-spatial-control="soft"], [data-spatial-control="secondary"]):not([data-spatial-size="icon"]):not(:disabled):active {
+    translate: 0 var(--m-cap-travel);
+    box-shadow: var(--m-cap-shadow-down) !important;
+  }
+  .spatial-button:is([data-spatial-control="ghost"], [data-spatial-size="icon"]):not(:disabled):active {
     translate: 0 1px;
-    box-shadow: 0 0 0 0 transparent !important;
+    background-color: var(--m-hover) !important;
   }
 
   /* 5 — Keycaps: secondary keys (share, studio pills, status chips) rest on a
      1px ledge and travel 1px; primary keys keep the 2px ledge above. */
   [data-tactile] {
-    border: 1px solid var(--m-action-edge) !important;
-    border-radius: var(--m-radius-pill) !important;
+    border: 1px solid var(--m-edge) !important;
     background-color: var(--m-surface) !important;
-    box-shadow: var(--m-press) var(--m-press) 0 0 var(--m-action-edge) !important;
+    background-image: var(--m-cap-top) !important;
+    box-shadow: var(--m-cap-shadow) !important;
     transition: translate 75ms var(--m-key-ease), box-shadow 75ms var(--m-key-ease), background-color 120ms var(--m-ease) !important;
   }
-  [data-tactile]:hover { background-color: var(--m-control) !important; }
+  [data-tactile]:not([class*="rounded-"]) { border-radius: var(--m-radius-pill) !important; }
+  [data-tactile]:hover { border-color: hsl(var(--foreground) / 0.35) !important; }
   [data-tactile]:not(:disabled):active, [data-tactile][data-state="open"] {
-    translate: var(--m-press) var(--m-press);
-    box-shadow: 0 0 0 0 transparent !important;
+    translate: 0 var(--m-cap-travel);
+    box-shadow: var(--m-cap-shadow-down) !important;
+  }
+
+  /* Keys that sit inside a rounded group (segmented tracks, toggle groups, tab lists)
+     are flush with their bed: no wall that could stick out of the rounded frame. */
+  :is(.spatial-track, [role="tablist"], [role="group"], [role="radiogroup"], [role="toolbar"], .spatial-control-pill) :is(.spatial-button, [data-tactile]) {
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+  }
+  :is(.spatial-track, [role="tablist"], [role="group"], [role="radiogroup"], [role="toolbar"], .spatial-control-pill) :is(.spatial-button, [data-tactile]):not(:disabled):active {
+    translate: 0 1px;
+    box-shadow: var(--m-cap-shadow-down) !important;
   }
 
   /* 6 — Folders: one card per folder. Cards nested inside an open folder are
