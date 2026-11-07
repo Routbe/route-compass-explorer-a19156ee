@@ -78,3 +78,16 @@
 - [x] Logo 660x660 / 17.5% padding and hero 1032x812 kept; image responses get open access + one-year immutable caching.
 - [x] Tests for the new payload (124 Wallet tests pass).
 - [ ] Real saved pass on a phone: blocked by missing Google Wallet issuer/service-account keys in this project.
+
+## Current request: 3-card Wallet compartmentalisation + APDU engine (7 Nov 2026)
+
+- [x] Three separate export cards (Public Node, Stealth/Alias, Sovereign Key) with hard block shadows; key card black with heavier ledge and warning.
+- [x] Pass types and payloads: key has Smart Tap / Apple VAS NFC token, no QR and no profile data; profile cards never carry NFC.
+- [x] ISO 7816-4 APDU codec + key session (SELECT AID, GET CHALLENGE, INTERNAL AUTHENTICATE, replay refusal) with tests.
+- [x] Signed-out visual check of the three cards in light and dark mode.
+- [ ] Sovereign Key issuance: blocked by Google Smart Tap approval (redemption issuer + collector keys) and Apple NFC pass entitlement.
+- [ ] Real NFC taps: browsers cannot emulate a card; needs a native Android app (HCE) and a reader endpoint.
+- [ ] Samsung Wallet: needs a Samsung Wallet partner account.
+- [ ] Rotating Aztec code for the alias card: needs Google rotating-barcode (TOTP) setup.
+- [ ] Owner view of the export inside the ROUT Card screen: blocked by sign-in keys (BETTER_AUTH_SECRET).
+
