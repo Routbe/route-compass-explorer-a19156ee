@@ -11,6 +11,7 @@ import { RoutCardDialog } from "@/components/wallet/RoutCardDialog";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { enableMyAskPage, getQaPublic } from "@/lib/questions.functions";
+import { AppBrandTile } from "@/components/brand/AppBrandTile";
 
 export const SHARE_TARGETS = [
   { id: "hub", path: "", icon: Globe },
@@ -25,6 +26,15 @@ export type ShareTargetId = (typeof SHARE_TARGETS)[number]["id"];
 export function shareTargetUrl(origin: string, handle: string, id: ShareTargetId): string {
   const target = SHARE_TARGETS.find((t) => t.id === id) ?? SHARE_TARGETS[0];
   return `${origin.replace(/\/$/, "")}/${encodeURIComponent(handle)}${target.path}`;
+}
+
+/** Snapchat camera with the link attached to the snap. */
+export function snapchatAttachUrl(link: string): string {
+  return `https://www.snapchat.com/scan?attachmentUrl=${encodeURIComponent(link)}`;
+}
+/** WhatsApp chat picker with the message already typed. */
+export function whatsappTextUrl(message: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
 
 type Platform = "snapchat" | "instagram" | "whatsapp" | "more";
@@ -105,7 +115,19 @@ export function ShareWidget({ handle }: { handle: string | null | undefined }) {
     return false;
   };
   const run = (p: Platform) => {
-    if (p === "snapchat" || p === "instagram") {
+    const message = `${t(`shareWidget.story.${selected}`)} ${url}`;
+    // Snapchat opens its camera with the link already attached; WhatsApp opens with the message filled in.
+    if (p === "snapchat") {
+      void copyLink(true);
+      window.open(snapchatAttachUrl(url), "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (p === "whatsapp") {
+      window.open(whatsappTextUrl(message), "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (p === "instagram") {
+      // Instagram has no way to pre-fill a link: the link goes on the clipboard for the Link sticker.
       void copyLink(true);
       void shareImage(false).then((ok) => {
         if (ok) return;
@@ -124,7 +146,7 @@ export function ShareWidget({ handle }: { handle: string | null | undefined }) {
   };
   const pick = (p: Platform) => {
     if (selected === "ask" && askOn === false) { setAskPrompt(p); return; }
-    if ((p === "snapchat" || p === "instagram") && !localStorage.getItem(GUIDE_KEY + p)) { setStep(0); setGuide(p); return; }
+    if (p === "instagram" && !localStorage.getItem(GUIDE_KEY + p)) { setStep(0); setGuide(p); return; }
     run(p);
   };
   const steps = guide ? (t(`shareWidget.guide.${guide}.steps`, { returnObjects: true }) as string[]) : [];
@@ -160,9 +182,11 @@ export function ShareWidget({ handle }: { handle: string | null | undefined }) {
           </div>
           <div className="grid grid-cols-4 gap-2" aria-label={t("shareWidget.shareTo")}>
             {PLATFORMS.map((p) => (
-              <button key={p} type="button" onClick={() => pick(p)} disabled={!file}
-                className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-background/40 px-1 text-xs transition-colors hover:border-foreground/40 disabled:opacity-50">
-                {p === "more" ? <Share2 className="h-5 w-5" aria-hidden /> : <span className="font-display text-base leading-none" aria-hidden>{p === "snapchat" ? "👻" : p === "instagram" ? "◎" : "✆"}</span>}
+              <button key={p} type="button" data-tactile="" onClick={() => pick(p)} disabled={(p === "instagram" || p === "more") && !file}
+                className="flex min-h-20 min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border border-border bg-background/40 px-1 py-2 text-xs transition-colors hover:border-foreground/40 disabled:opacity-50">
+                {p === "more"
+                  ? <span className="grid size-9 place-items-center rounded-[28%] bg-foreground text-background" aria-hidden><Share2 className="h-[18px] w-[18px]" /></span>
+                  : <AppBrandTile brand={p} />}
                 <span className="max-w-full truncate">{t(`shareWidget.platform.${p}`)}</span>
               </button>
             ))}
