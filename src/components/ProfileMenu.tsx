@@ -228,10 +228,6 @@ export function ProfileMenu() {
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
-
-
-
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => nav(GLOBAL_ACCOUNT_LINK.to)} className="gap-2">
             <Shield className="h-4 w-4 shrink-0" aria-hidden /> {GLOBAL_ACCOUNT_LINK.label}
           </DropdownMenuItem>
