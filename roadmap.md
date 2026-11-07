@@ -1,5 +1,12 @@
 # Repository import
 
+## Current request (7 Nov 2026): 1:1 import into this project, full read-through, then Neon
+
+- [x] Byte-compare the GitHub repository with this project; restore unintended differences.
+- [ ] Read through all code, content and texts to understand the structure.
+- [ ] Link the Neon database only after the read-through.
+- [ ] Verify the runtime role check and a database-backed page without changing records or permissions.
+
 ## Current request: exact import, then Neon
 
 - [x] Compare all imported application source and assets with the supplied repository.
