@@ -7,6 +7,7 @@ import type { EnclaveArgs, EnclaveErrorCode, EnclaveOp, EnclaveRequest, EnclaveR
 import type { PrivateEnvelope } from "@/lib/ledger/crypto";
 import type { Capability, CapabilityGrant } from "@/lib/protocol/capabilities";
 import type { EventDraft, SignedEvent } from "@/lib/protocol/events";
+import type { RecoveryVault } from "@/lib/recovery/vault";
 import { wipeMessage } from "@/lib/crypto/wipe";
 
 export type { LedgerDraft, SealedForUser, VaultSummary } from "./protocol";
@@ -179,6 +180,16 @@ export const enclave = {
       callEnclave("ledger.unlock", { keyId, envelope, ...material }, "prf" in material ? moved(material.prf) : []),
     decrypt: (keyId: string, items: { id: string; payload: string }[]) => callEnclave("ledger.decrypt", { keyId, items }),
     lock: (keyId?: string) => callEnclave("ledger.lock", keyId ? { keyId } : {}),
+  },
+  recovery: {
+    create: (mnemonic: string) => callEnclave("recovery.create", { mnemonic }),
+    check: (vault: RecoveryVault, shard: string) => callEnclave("recovery.check", { vault, shard }),
+    sealShard: (prf: Uint8Array, shard: string, vaultId: string) => callEnclave("recovery.sealShard", { prf, shard, vaultId }, moved(prf)),
+    openShard: (prf: Uint8Array, blob: string, vaultId: string) => callEnclave("recovery.openShard", { prf, blob, vaultId }, moved(prf)),
+    restore: (userId: string, vault: RecoveryVault, shards: string[], practice = false) => callEnclave("recovery.restore", { userId, vault, shards, practice }),
+  },
+  pairwise: {
+    claim: (root: Uint8Array, sector: string, nonce: string) => callEnclave("pairwise.claim", { root, sector, nonce }, moved(root)),
   },
   hash: {
     sha256Hex: (text: string) => callEnclave("hash.sha256Hex", { text }),

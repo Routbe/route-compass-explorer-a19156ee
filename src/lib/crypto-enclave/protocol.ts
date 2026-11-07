@@ -10,6 +10,8 @@ import type { SealedBlob } from "@/lib/e2ee/crypto";
 import type { PrivateEnvelope } from "@/lib/ledger/crypto";
 import type { Capability, CapabilityGrant } from "@/lib/protocol/capabilities";
 import type { EventDraft, SignedEvent } from "@/lib/protocol/events";
+import type { RecoveryVault, ShardCheck } from "@/lib/recovery/vault";
+import type { SubjectClaim } from "@/lib/recovery/pairwise";
 
 /** Public metadata of a decrypted handoff; the full config stays inside the worker. */
 export type VaultSummary = { name: string; slug?: string; description?: string };
@@ -43,6 +45,16 @@ export interface EnclaveOps {
   "ledger.unlock": { req: { keyId: string; envelope: PrivateEnvelope; recoveryCode?: string; prf?: Uint8Array }; res: null };
   "ledger.decrypt": { req: { keyId: string; items: { id: string; payload: string }[] }; res: Record<string, string> };
   "ledger.lock": { req: { keyId?: string }; res: null };
+
+  /** Split a fresh vault key 3-of-5; the Master Key (from its words) is sealed under it and wiped. */
+  "recovery.create": { req: { mnemonic: string }; res: { vault: RecoveryVault; shards: string[] } };
+  "recovery.check": { req: { vault: RecoveryVault; shard: string }; res: ShardCheck };
+  /** Reconstruct and install as this device's key; `practice` verifies without installing. */
+  "recovery.restore": { req: { userId: string; vault: RecoveryVault; shards: string[]; practice?: boolean }; res: { keyId: string | null } };
+  "recovery.sealShard": { req: { prf: Uint8Array; shard: string; vaultId: string }; res: { blob: string } };
+  "recovery.openShard": { req: { prf: Uint8Array; blob: string; vaultId: string }; res: { shard: string } };
+  /** Pairwise partner subject from a passkey PRF root (transferred, wiped). */
+  "pairwise.claim": { req: { root: Uint8Array; sector: string; nonce: string }; res: SubjectClaim };
 
   "hash.sha256Hex": { req: { text: string }; res: string };
 
