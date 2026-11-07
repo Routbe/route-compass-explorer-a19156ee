@@ -285,7 +285,8 @@
   border-radius: 1rem;
   background: hsl(var(--card));
   color: hsl(var(--card-foreground));
-  box-shadow: var(--vault-press) var(--vault-press) 0 0 var(--vault-edge) !important;
+  border-color: hsl(var(--foreground) / 0.14);
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.5), 0 2px 0 0 hsl(var(--foreground) / 0.1), 0 12px 24px -16px oklch(0 0 0 / 0.35) !important;
 }
 .wallet-vault-card[data-kind="key"] {
   --vault-ink: oklch(0.12 0 0);
@@ -293,7 +294,7 @@
   border: 2px solid var(--vault-ink);
   background: var(--vault-ink);
   color: oklch(0.97 0 0);
-  box-shadow: 4px 4px 0 0 hsl(var(--foreground) / 0.85) !important;
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.12), 0 4px 0 0 oklch(0.05 0 0), 0 18px 32px -14px oklch(0 0 0 / 0.55) !important;
   background-image: repeating-linear-gradient(0deg, oklch(1 0 0 / 0.035) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, oklch(1 0 0 / 0.035) 0 1px, transparent 1px 6px);
 }
 .wallet-vault-icon {
@@ -308,17 +309,19 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem;
   min-height: 2.75rem; padding: 0 1rem; border-radius: 999px;
   font-size: 0.8125rem; font-weight: 600;
-  border: 1px solid var(--vault-edge);
-  background: hsl(var(--foreground)); color: hsl(var(--background));
-  box-shadow: var(--vault-press) var(--vault-press) 0 0 var(--vault-edge) !important;
+  --vault-wall: oklch(0.05 0 0);
+  margin-bottom: 3px;
+  border: 1px solid var(--vault-wall);
+  background: linear-gradient(180deg, color-mix(in oklab, hsl(var(--foreground)) 82%, hsl(var(--background))) 0%, hsl(var(--foreground)) 60%);
+  color: hsl(var(--background));
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.22), 0 3px 0 0 var(--vault-wall), 0 5px 6px -2px oklch(0 0 0 / 0.3) !important;
   transition: translate 75ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 75ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .wallet-vault-card[data-kind="key"] .wallet-vault-key {
-  --vault-edge: oklch(0.97 0 0);
-  background: oklch(0.97 0 0); color: oklch(0.12 0 0);
-  border-width: 2px;
+  --vault-wall: oklch(0.62 0 0);
+  background: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.93 0 0) 100%); color: oklch(0.12 0 0);
 }
-.wallet-vault-key:not(:disabled):active { translate: var(--vault-press) var(--vault-press); box-shadow: 0 0 0 0 transparent !important; }
+.wallet-vault-key:not(:disabled):active { translate: 0 3px; box-shadow: inset 0 2px 4px 0 oklch(0 0 0 / 0.25), 0 0 0 0 var(--vault-wall) !important; }
 .wallet-vault-key:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none !important; }
 .wallet-vault-key:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .wallet-vault-key { transition: none; } }
