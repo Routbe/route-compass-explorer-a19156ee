@@ -51,6 +51,8 @@ export interface EnclaveOps {
   "recovery.check": { req: { vault: RecoveryVault; shard: string }; res: ShardCheck };
   /** Reconstruct and install as this device's key; `practice` verifies without installing. */
   "recovery.restore": { req: { userId: string; vault: RecoveryVault; shards: string[]; practice?: boolean }; res: { keyId: string | null } };
+  "recovery.sealShard": { req: { prf: Uint8Array; shard: string; vaultId: string }; res: { blob: string } };
+  "recovery.openShard": { req: { prf: Uint8Array; blob: string; vaultId: string }; res: { shard: string } };
   /** Pairwise partner subject from a passkey PRF root (transferred, wiped). */
   "pairwise.claim": { req: { root: Uint8Array; sector: string; nonce: string }; res: SubjectClaim };
 

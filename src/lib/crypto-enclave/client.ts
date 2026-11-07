@@ -184,6 +184,8 @@ export const enclave = {
   recovery: {
     create: (mnemonic: string) => callEnclave("recovery.create", { mnemonic }),
     check: (vault: RecoveryVault, shard: string) => callEnclave("recovery.check", { vault, shard }),
+    sealShard: (prf: Uint8Array, shard: string, vaultId: string) => callEnclave("recovery.sealShard", { prf, shard, vaultId }, moved(prf)),
+    openShard: (prf: Uint8Array, blob: string, vaultId: string) => callEnclave("recovery.openShard", { prf, blob, vaultId }, moved(prf)),
     restore: (userId: string, vault: RecoveryVault, shards: string[], practice = false) => callEnclave("recovery.restore", { userId, vault, shards, practice }),
   },
   pairwise: {

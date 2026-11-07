@@ -103,3 +103,27 @@ export async function openVault(texts: string[], input: RecoveryVault): Promise<
     for (const y of seen.values()) y.fill(0);
   }
 }
+
+const shardAad = (vaultId: string) => enc.encode(`rout.recovery.passkey-shard.v1|${vaultId}`);
+async function prfKey(prf: Uint8Array, usage: KeyUsage) {
+  if (prf.length < 32) throw new Error("weak_prf");
+  const base = await crypto.subtle.importKey("raw", prf as BufferSource, "HKDF", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt: enc.encode("rout.recovery.v1") as BufferSource, info: enc.encode("passkey-shard") as BufferSource },
+    base, { name: "AES-GCM", length: 256 }, false, [usage]);
+}
+
+/** Wraps one shard under a passkey PRF output; only that authenticator can unwrap it. */
+export async function sealShardWithPrf(prf: Uint8Array, shard: string, vaultId: string): Promise<string> {
+  const key = await prfKey(prf, "encrypt");
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: shardAad(vaultId) as BufferSource }, key, enc.encode(shard) as BufferSource));
+  return `v1.${b64u(iv)}.${b64u(ct)}`;
+}
+
+export async function openShardWithPrf(prf: Uint8Array, blob: string, vaultId: string): Promise<string> {
+  const [v, iv, ct] = blob.split(".");
+  if (v !== "v1" || !iv || !ct) throw new Error("invalid_input");
+  const key = await prfKey(prf, "decrypt");
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64u(iv) as BufferSource, additionalData: shardAad(vaultId) as BufferSource }, key, fromB64u(ct) as BufferSource);
+  return new TextDecoder().decode(pt);
+}
