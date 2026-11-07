@@ -7,6 +7,7 @@ import type { EnclaveArgs, EnclaveErrorCode, EnclaveOp, EnclaveRequest, EnclaveR
 import type { PrivateEnvelope } from "@/lib/ledger/crypto";
 import type { Capability, CapabilityGrant } from "@/lib/protocol/capabilities";
 import type { EventDraft, SignedEvent } from "@/lib/protocol/events";
+import type { RecoveryVault } from "@/lib/recovery/vault";
 import { wipeMessage } from "@/lib/crypto/wipe";
 
 export type { LedgerDraft, SealedForUser, VaultSummary } from "./protocol";
