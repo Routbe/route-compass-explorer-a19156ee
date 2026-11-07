@@ -70,7 +70,7 @@ export function ShareWidget({ handle }: { handle: string | null | undefined }) {
     if (!handle) return;
     let live = true;
     getQaPublic({ data: { handle, space: "root" } })
-      .then(({ qa }) => { if (live) setAskOn(Boolean(qa?.page)); })
+      .then(({ qa }) => { if (live) setAskOn(Boolean(qa?.accepting)); })
       .catch(() => { if (live) setAskOn(null); });
     return () => { live = false; };
   }, [handle]);
