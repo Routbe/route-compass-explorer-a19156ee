@@ -44,8 +44,11 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, max: number, size:
 }
 
 /** Printed QR placement (canvas px): the white panel is exactly the QR + quiet zone. */
-export const FRONT_QR = { x: 28, y: FACE_H - 188, size: 160, quiet: 2 } as const;
-export const BACK_QR = { x: 80, y: Math.round(FACE_H * 0.13), size: FACE_W - 160, quiet: 2 } as const;
+export const FRONT_QR = { x: 150, y: 512, size: 340, quiet: 2 } as const;
+export const BACK_QR = { x: 200, y: Math.round(FACE_H * 0.13), size: 240, quiet: 2 } as const;
+/** Front portrait and printed text lines (shared with the 3D card's SDF text). */
+export const FRONT_AVATAR = { cy: 236, r: 96 } as const;
+export const FRONT_TEXT_Y = { name: 400, handle: 444, sub: 480 } as const;
 export type QrBox = { x: number; y: number; w: number };
 
 /** Exact panel rectangle drawQr will paint for a layout (for shader reserve masks). */
@@ -106,7 +109,7 @@ function loadOcrB(): Promise<boolean> {
   return ocrb;
 }
 
-export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"> & { avatarPath?: string | null; regionDisplay?: string }, opts: { sdfText?: boolean; secureQr?: string | null; tier?: "adult" | "junior"; baseHex?: string } = {}): Promise<CardFaces> {
+export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"> & { avatarPath?: string | null; regionDisplay?: string }, opts: { sdfText?: boolean; secureQr?: string | null; frontQr?: string | null; tier?: "adult" | "junior"; baseHex?: string } = {}): Promise<CardFaces> {
   const make = () => {
     const c = document.createElement("canvas");
     c.width = FACE_W;
@@ -159,8 +162,8 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   f.textAlign = "left";
   f.globalAlpha = 1;
   const cx = FACE_W / 2;
-  const cy = FACE_H * 0.42;
-  const r = 150;
+  const cy = FRONT_AVATAR.cy;
+  const r = FRONT_AVATAR.r;
   // Avatar only: a smooth disc with a light raised rim around it, no card patterns.
   const rim = f.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
   rim.addColorStop(0, shade(bg, 0.32));
@@ -201,7 +204,7 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
     f.fillStyle = shade(bg, 0.18);
     f.fillRect(cx - r, cy - r, 2 * r, 2 * r);
     f.fillStyle = fg;
-    f.font = `600 110px ui-sans-serif, system-ui, sans-serif`;
+    f.font = `600 76px ui-sans-serif, system-ui, sans-serif`;
     f.textAlign = "center";
     f.textBaseline = "middle";
     f.fillText((card.displayName.replace(/^@/, "")[0] ?? "R").toUpperCase(), cx, cy + 6);
@@ -211,24 +214,27 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   if (!opts.sdfText) {
     f.textAlign = "center";
     f.fillStyle = fg;
-    fitText(f, card.displayName, FACE_W - 96, 52, 700);
-    f.fillText(card.displayName, cx, FACE_H * 0.7);
+    fitText(f, card.displayName, FACE_W - 96, 44, 700);
+    f.fillText(card.displayName, cx, FRONT_TEXT_Y.name);
     f.globalAlpha = 0.75;
-    fitText(f, `@${card.handle}`, FACE_W - 96, 30, 500);
-    f.fillText(`@${card.handle}`, cx, FACE_H * 0.7 + 48);
+    fitText(f, `@${card.handle}`, FACE_W - 96, 28, 500);
+    f.fillText(`@${card.handle}`, cx, FRONT_TEXT_Y.handle);
     f.globalAlpha = 0.6;
     const sub = card.regionDisplay || card.subheader;
-    fitText(f, sub, FACE_W - 96, 22, 400);
-    f.fillText(sub, cx, FACE_H * 0.7 + 92);
+    fitText(f, sub, FACE_W - 96, 20, 400);
+    f.fillText(sub, cx, FRONT_TEXT_Y.sub);
   }
   f.textAlign = "center";
   f.globalAlpha = 0.45;
-  f.font = `500 18px ui-sans-serif, system-ui, sans-serif`;
-  f.fillText(card.url.replace(/^https?:\/\//, ""), cx, FACE_H - 56);
+  const frontValue = opts.frontQr ?? card.qrValue;
+  f.globalAlpha = 0.6;
+  f.font = `600 20px ui-monospace, SFMono-Regular, monospace`;
+  f.fillText(frontValue.replace(/^https?:\/\//, ""), cx, FRONT_QR.y + FRONT_QR.size + 44);
   f.globalAlpha = 1;
-  // Front: compact public identity QR (social / networking).
+  // Front: big public QR (rout.be/<handle>/<4 digits, new every 10 min>). Anyone may scan it:
+  // phones open the profile, partners (pool, transit) check the digits are fresh.
   // Error correction H (30 %), so the centred ROUT seal (< 8 % of the area) never breaks scanning.
-  const fq = drawQr(f, card.qrValue, FRONT_QR.x, FRONT_QR.y, FRONT_QR.size, "H", FRONT_QR.quiet, 6);
+  const fq = drawQr(f, frontValue, FRONT_QR.x, FRONT_QR.y, FRONT_QR.size, "H", FRONT_QR.quiet, 12);
   const fqc = { x: fq.x + fq.w / 2, y: fq.y + fq.w / 2 };
   f.fillStyle = "#ffffff";
   f.beginPath();
@@ -238,8 +244,8 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   drawEmblem(f, fqc.x, fqc.y, fq.w * 0.07);
 
   // Emblem bottom-right of the portrait, printed faintly; the foil does the rest.
-  const ex = FACE_W - 92;
-  const ey = FACE_H * 0.58;
+  const ex = FACE_W - 84;
+  const ey = FACE_H - 84;
   f.globalAlpha = 0.35;
   f.fillStyle = fg;
   drawEmblem(f, ex, ey, 34);
@@ -255,7 +261,7 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   drawEmblem(m, ex, ey, 34);
   m.lineWidth = 16;
   m.beginPath();
-  m.arc(cx, cy, r + 14, 0, Math.PI * 2);
+  m.arc(cx, cy, r + 12, 0, Math.PI * 2);
   m.stroke();
   m.lineWidth = 10;
   m.strokeRect(14, 14, FACE_W - 28, FACE_H - 28);
@@ -263,7 +269,7 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   m.textAlign = "left";
   m.fillText("ROUT", 48, 78);
   m.save();
-  m.translate(FACE_W / 2, FACE_H * 0.55);
+  m.translate(FACE_W / 2, FACE_H * 0.3);
   m.rotate(-Math.PI / 5);
   m.fillStyle = "#00ff00";
   m.textAlign = "center";
@@ -316,6 +322,34 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   b.fillStyle = "rgba(255,255,255,0.45)";
   b.font = `600 15px ui-monospace, SFMono-Regular, monospace`;
   b.fillText("LIVE · PROOF OF NOW", FACE_W / 2, qy + qrSize + 100);
+  // Contactless zone: EMV-style chip + NFC mark (the real NFC lives in the physical card / wallet key).
+  const chipY = qy + qrSize + 172;
+  const chip = b.createLinearGradient(48, chipY, 48 + 112, chipY + 84);
+  chip.addColorStop(0, "#e8d7a5");
+  chip.addColorStop(0.5, "#b99a55");
+  chip.addColorStop(1, "#e3cd8f");
+  b.fillStyle = chip;
+  b.beginPath();
+  b.roundRect(48, chipY, 112, 84, 14);
+  b.fill();
+  b.strokeStyle = "rgba(60,44,12,0.55)";
+  b.lineWidth = 2;
+  for (const yy of [chipY + 28, chipY + 56]) { b.beginPath(); b.moveTo(48, yy); b.lineTo(160, yy); b.stroke(); }
+  b.beginPath(); b.moveTo(104, chipY); b.lineTo(104, chipY + 84); b.stroke();
+  b.strokeStyle = "#f4f4f5";
+  b.lineWidth = 5;
+  for (let i = 0; i < 4; i++) {
+    b.beginPath();
+    b.arc(196, chipY + 42, 12 + i * 12, -Math.PI / 4, Math.PI / 4);
+    b.stroke();
+  }
+  b.textAlign = "left";
+  b.fillStyle = "#e4e4e7";
+  b.font = `700 22px ui-sans-serif, system-ui, sans-serif`;
+  b.fillText("NFC · CONTACTLESS", 268, chipY + 36);
+  b.fillStyle = "rgba(255,255,255,0.5)";
+  b.font = `500 16px ui-monospace, SFMono-Regular, monospace`;
+  b.fillText("BETALEN · TOEGANG · SLEUTEL", 268, chipY + 64);
   // MRZ strip
   const mrzTop = FACE_H - 150;
   b.fillStyle = "#e9e7e1";
