@@ -50,3 +50,18 @@ describe("donationPaymentMatches", () => {
     expect(donationPaymentMatches(1000, undefined, "eur")).toBe(false);
   });
 });
+
+import { bankRequestAmountCents } from "./payment-amount-policy";
+
+describe("bankRequestAmountCents", () => {
+  it("charges the member's stored open payment (base + contribution)", () => {
+    expect(bankRequestAmountCents({ amountCents: 399, donationCents: 100 }, 999)).toBe(499);
+  });
+  it("falls back to the server's standard price without a stored payment", () => {
+    expect(bankRequestAmountCents(null, 399)).toBe(399);
+  });
+  it("refuses a zero or invalid amount", () => {
+    expect(bankRequestAmountCents({ amountCents: 0, donationCents: 0 }, 399)).toBeNull();
+    expect(bankRequestAmountCents({ amountCents: "abc", donationCents: 0 }, 399)).toBeNull();
+  });
+});

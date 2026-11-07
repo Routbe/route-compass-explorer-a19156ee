@@ -393,7 +393,6 @@ export function VerificationPanel() {
     void loadBankDetails({
       data: {
         country,
-        amountCents: transferAmountCents,
         reference: transferReference,
       },
     })
