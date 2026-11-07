@@ -345,8 +345,8 @@ function Card({ faces, finish, pbr, flipped, tilt, live, zoom, secure, onFlip, d
       <mesh geometry={face} position={[0, 0, FRONT_Z]} material={security} />
       <mesh geometry={face} position={[0, 0, BACK_Z]} rotation={[0, Math.PI, 0]} material={backSecurity} />
 
-      <group ref={watermark} position={[0, H * 0.29, FRONT_Z + 0.0018]}>
-        <Text font={FONT} fontSize={0.145} sdfGlyphSize={128} letterSpacing={0} anchorX="center" anchorY="middle"
+      <group ref={watermark} position={[cx(150), cy(960), FRONT_Z + 0.0018]}>
+        <Text font={FONT} fontSize={0.08} sdfGlyphSize={128} letterSpacing={0} anchorX="center" anchorY="middle"
           onSync={() => glyphs.current.add("watermark")}>
           ROUT
           <meshPhysicalMaterial color={text.fg} metalness={0.65} roughness={0.22} iridescence={1}
