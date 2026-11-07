@@ -12,5 +12,6 @@ export async function renderGoogleArtwork(cardId: string, version: string, file:
   const { svgToPng } = await import("@/lib/og-render.server");
   // Transparent PNG: Google shows the pass tile colour through the artwork.
   const png = await svgToPng(googlePremiumArtworkSvg(card), walletOrigin(), "transparent", GOOGLE_PASS_DESIGN.heroWidth);
-  return new Response(png as BodyInit, { headers: { "content-type": "image/png", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600, s-maxage=86400", "x-content-type-options": "nosniff" } });
+  const { WALLET_IMAGE_HEADERS } = await import("./wallet-image-headers");
+  return new Response(png as BodyInit, { headers: WALLET_IMAGE_HEADERS });
 }

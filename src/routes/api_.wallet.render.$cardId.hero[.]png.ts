@@ -23,9 +23,9 @@ export const Route = createFileRoute("/api_/wallet/render/$cardId/hero.png")({
           bg: card.hexBackgroundColor, accent: card.accentHex ?? "#41db97", fg: card.hexForegroundColor, space: card.space,
         });
         const png = await svgToPng(svg, walletOrigin(), card.hexBackgroundColor, 3096);
-        return new Response(png as BodyInit, {
-          headers: { "content-type": "image/png", "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" },
-        });
+        // walletHeroUrl versions this URL (?v=) by design, so the bytes behind a URL never change.
+        const { WALLET_IMAGE_HEADERS } = await import("@/lib/wallet/wallet-image-headers");
+        return new Response(png as BodyInit, { headers: WALLET_IMAGE_HEADERS });
       },
     },
   },
