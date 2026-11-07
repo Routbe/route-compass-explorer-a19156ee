@@ -1843,5 +1843,20 @@
   "profile.nfcTagFailed": "Schreiben fehlgeschlagen. Versuche es erneut oder nimm einen anderen Sticker.",
   "profile.nfcTagHold": "Halte einen NFC-Sticker an die Rückseite deines Telefons…",
   "profile.nfcTagWritten": "Fertig: Wer den Sticker antippt, öffnet dein Profil.",
-  "profile.writeNfcTag": "Auf NFC-Sticker schreiben"
+  "profile.writeNfcTag": "Auf NFC-Sticker schreiben",
+  "vault.title": "Wallet-Export: drei getrennte Pässe",
+  "vault.lead": "Halte dein Netzwerkprofil und dein Bezahl-NFC für maximale Sicherheit physisch getrennt.",
+  "vault.public.title": "1 · Public Node Card",
+  "vault.public.tag": "Nur QR · kein NFC",
+  "vault.public.body": "Deine öffentliche Visitenkarte. Ein QR-Code zu deinem Profil, zum Zeigen und Scannen.",
+  "vault.stealth.title": "2 · Stealth / Alias Card",
+  "vault.stealth.tag": "Privater Alias · kein NFC",
+  "vault.stealth.body": "Eine eigene Karte für deinen privaten Alias. Nicht mit deinem Hauptprofil verknüpfbar.",
+  "vault.stealth.none": "Du hast noch keinen privaten Alias. Lege zuerst einen an.",
+  "vault.key.title": "3 · Sovereign Key",
+  "vault.key.tag": "Hardware-Schlüssel · NFC · kein QR",
+  "vault.key.body": "Ein verschlüsselter Schlüssel für NFC-Zugang und -Zahlungen. Kein QR-Code und keine Profildaten auf dem Bildschirm.",
+  "vault.key.warning": "Behandle ihn wie einen physischen Schlüssel. Teile ihn nie.",
+  "vault.key.pending": "Noch nicht verfügbar: wartet auf NFC-Freigabe von Google (Smart Tap) und Apple.",
+  "vault.offline": "Dieses Wallet ist noch nicht eingerichtet."
 }
