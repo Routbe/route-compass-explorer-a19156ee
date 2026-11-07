@@ -53,7 +53,7 @@ function MaterialLab() {
           <Card data-lab="static-card">
             <CardHeader><CardTitle>Wat wil je delen?</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <SpatialChoice label="Soort" value={share} onChange={setShare}
+              <SpatialChoice<typeof share> label="Soort" value={share} onChange={setShare}
                 options={[{ value: "link", label: "Link" }, { value: "card", label: "Kaart" }, { value: "qr", label: "QR-code" }]} />
               <div className="flex flex-wrap items-center gap-2">
                 <Button data-lab="publish">Publiceren</Button>

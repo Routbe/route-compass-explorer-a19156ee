@@ -9,7 +9,7 @@ vi.mock("@tanstack/react-router", () => ({
 import { ThemeProvider, useTheme } from "./useTheme";
 function Controls() {
   const { interfaceTheme, setInterfaceTheme } = useTheme();
-  return <><output>{interfaceTheme}</output><button onClick={() => setInterfaceTheme("creator")}>Creator</button><button onClick={() => setInterfaceTheme("sovereign")}>Sovereign</button></>;
+  return <><output>{interfaceTheme}</output><button onClick={() => setInterfaceTheme("glass")}>Creator</button><button onClick={() => setInterfaceTheme("mechanical")}>Sovereign</button></>;
 }
 describe("workspace material preference lifecycle", () => {
   beforeEach(() => {
@@ -19,29 +19,29 @@ describe("workspace material preference lifecycle", () => {
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
   it("switches live, persists Creator and restores it after reopening", async () => {
     const view = render(<ThemeProvider><Controls /></ThemeProvider>);
-    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("sovereign"));
+    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("mechanical"));
     fireEvent.click(screen.getByRole("button", { name: "Creator" }));
-    expect(localStorage.getItem(INTERFACE_THEME_KEY)).toBe("creator");
-    expect(document.documentElement.dataset["theme"]).toBe("creator");
+    expect(localStorage.getItem(INTERFACE_THEME_KEY)).toBe("glass");
+    expect(document.documentElement.dataset["theme"]).toBe("glass");
     view.unmount();
     render(<ThemeProvider><Controls /></ThemeProvider>);
-    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("creator"));
+    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("glass"));
   });
   it("removes the engine on the homepage while keeping the member choice", async () => {
-    localStorage.setItem(INTERFACE_THEME_KEY, "creator");
+    localStorage.setItem(INTERFACE_THEME_KEY, "glass");
     const view = render(<ThemeProvider><Controls /></ThemeProvider>);
-    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("creator"));
+    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("glass"));
     location.path = "/"; location.routes = ["/"];
     view.rerender(<ThemeProvider><Controls /></ThemeProvider>);
     expect(document.documentElement.hasAttribute("data-workspace-ui")).toBe(false);
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
-    expect(localStorage.getItem(INTERFACE_THEME_KEY)).toBe("creator");
+    expect(localStorage.getItem(INTERFACE_THEME_KEY)).toBe("glass");
   });
   it("synchronizes another tab and falls back to Sovereign on clearing storage", async () => {
     render(<ThemeProvider><Controls /></ThemeProvider>);
-    act(() => window.dispatchEvent(new StorageEvent("storage", { key: INTERFACE_THEME_KEY, newValue: "creator" })));
-    expect(document.documentElement.dataset["theme"]).toBe("creator");
+    act(() => window.dispatchEvent(new StorageEvent("storage", { key: INTERFACE_THEME_KEY, newValue: "glass" })));
+    expect(document.documentElement.dataset["theme"]).toBe("glass");
     act(() => window.dispatchEvent(new StorageEvent("storage", { key: null, newValue: null })));
-    expect(document.documentElement.dataset["theme"]).toBe("sovereign");
+    expect(document.documentElement.dataset["theme"]).toBe("mechanical");
   });
 });
