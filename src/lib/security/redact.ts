@@ -25,8 +25,30 @@ export function maskEmailsInText(text: string): string {
   return text.replace(EMAIL_RE, (m) => maskEmail(m));
 }
 
+/**
+ * IBAN in compacte of gegroepeerde vorm: landcode + 2 controlecijfers +
+ * 11–30 alfanumerieke tekens (optioneel in groepjes gescheiden door spaties).
+ */
+const IBAN_RE = /\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]){11,30}\b/g;
+
+/** Maskeert een IBAN: "NL91ABNA0417164300" → "NL91***00". */
+export function maskIban(iban: string): string {
+  const compact = iban.replace(/\s+/g, "");
+  return `${compact.slice(0, 4)}***${compact.slice(-2)}`;
+}
+
+/** Maskeert alle IBAN's in een vrije tekst. */
+export function maskIbansInText(text: string): string {
+  return text.replace(IBAN_RE, (m) => maskIban(m));
+}
+
+/** Maskeert e-mailadressen én rekeningnummers in vrije tekst (logs/fouten). */
+export function redactText(text: string): string {
+  return maskIbansInText(maskEmailsInText(text));
+}
+
 function redactString(value: string): string {
-  return maskEmailsInText(value);
+  return redactText(value);
 }
 
 function redactAny(value: unknown, keyHint: string | null, depth: number): unknown {
