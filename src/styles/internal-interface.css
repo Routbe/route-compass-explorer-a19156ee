@@ -325,3 +325,6 @@
 .wallet-vault-key:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none !important; }
 .wallet-vault-key:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .wallet-vault-key { transition: none; } }
+.dark .wallet-vault-card:not([data-kind="key"]) {
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.06), 0 2px 0 0 oklch(0 0 0 / 0.6), 0 14px 26px -16px oklch(0 0 0 / 0.8) !important;
+}
