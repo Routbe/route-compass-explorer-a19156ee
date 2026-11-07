@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { enableMyAskPage, getQaPublic } from "@/lib/questions.functions";
 import { AppBrandTile } from "@/components/brand/AppBrandTile";
+import { snapchatAttachUrl, whatsappTextUrl } from "@/lib/share-links";
 
 export const SHARE_TARGETS = [
   { id: "hub", path: "", icon: Globe },
@@ -26,15 +27,6 @@ export type ShareTargetId = (typeof SHARE_TARGETS)[number]["id"];
 export function shareTargetUrl(origin: string, handle: string, id: ShareTargetId): string {
   const target = SHARE_TARGETS.find((t) => t.id === id) ?? SHARE_TARGETS[0];
   return `${origin.replace(/\/$/, "")}/${encodeURIComponent(handle)}${target.path}`;
-}
-
-/** Snapchat camera with the link attached to the snap. */
-export function snapchatAttachUrl(link: string): string {
-  return `https://www.snapchat.com/scan?attachmentUrl=${encodeURIComponent(link)}`;
-}
-/** WhatsApp chat picker with the message already typed. */
-export function whatsappTextUrl(message: string): string {
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
 
 type Platform = "snapchat" | "instagram" | "whatsapp" | "more";
