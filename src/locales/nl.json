@@ -1843,5 +1843,20 @@
   "profile.nfcTagFailed": "Schrijven mislukt. Probeer opnieuw of gebruik een andere sticker.",
   "profile.nfcTagHold": "Houd een NFC-sticker tegen de achterkant van je telefoon…",
   "profile.nfcTagWritten": "Klaar: wie de sticker aantikt, opent je profiel.",
-  "profile.writeNfcTag": "Op NFC-sticker zetten"
+  "profile.writeNfcTag": "Op NFC-sticker zetten",
+  "vault.title": "Wallet-export: drie gescheiden passen",
+  "vault.lead": "Houd je netwerk-profiel en je betaal-NFC fysiek gescheiden voor maximale veiligheid.",
+  "vault.public.title": "1 · Public Node Card",
+  "vault.public.tag": "Alleen QR · geen NFC",
+  "vault.public.body": "Je openbare visitekaartje. Een QR-code naar je profiel, om te tonen en te laten scannen.",
+  "vault.stealth.title": "2 · Stealth / Alias Card",
+  "vault.stealth.tag": "Privé-alias · geen NFC",
+  "vault.stealth.body": "Een aparte kaart voor je privé-alias. Niet te koppelen aan je hoofdprofiel.",
+  "vault.stealth.none": "Je hebt nog geen privé-alias. Maak er eerst een aan.",
+  "vault.key.title": "3 · Sovereign Key",
+  "vault.key.tag": "Hardwaresleutel · NFC · geen QR",
+  "vault.key.body": "Een versleutelde sleutel voor toegang en betalen met NFC. Geen QR-code en geen profielgegevens op het scherm.",
+  "vault.key.warning": "Behandel dit als een fysieke sleutel. Deel hem nooit.",
+  "vault.key.pending": "Nog niet beschikbaar: wacht op NFC-goedkeuring van Google (Smart Tap) en Apple.",
+  "vault.offline": "Deze wallet is nog niet ingesteld."
 }

@@ -28,6 +28,72 @@ export const createWalletPass = createServerFn({ method: "POST" })
     }
   });
 
+/**
+ * Owner-only vault overview for the three compartmentalised passes: the member's
+ * own handles plus booleans for what can be issued. Never returns config values.
+ */
+export const getMyWalletVault = createServerFn({ method: "GET" })
+  .middleware([requireAuth])
+  .handler(async ({ context }) => {
+    const env = process.env as Record<string, string | undefined>;
+    const { walletStatus } = await import("./wallet-pass");
+    const { smartTapConfig, appleNfcConfig } = await import("./wallet-key");
+    const { isPlatformFeatureEnabled } = await import("@/lib/platform-features.server");
+    const { generateWalletPayload } = await import("./wallet-payload.server");
+    const on = await isPlatformFeatureEnabled("wallet");
+    const [root, alias] = await Promise.all([
+      generateWalletPayload(context.userId, { space: "root", allowAccountId: true }).catch(() => null),
+      generateWalletPayload(context.userId, { space: "alias", allowAccountId: true }).catch(() => null),
+    ]);
+    const status = on ? walletStatus(env) : { apple: false, google: false };
+    const secret = (env["WALLET_ID_SECRET"]?.length ?? 0) >= 32;
+    return {
+      root: root?.space === "root" ? root.handle : null,
+      alias: alias?.space === "alias" ? alias.handle : null,
+      google: status.google,
+      apple: status.apple,
+      keyGoogle: status.google && secret && !!smartTapConfig(env),
+      keyApple: status.apple && secret && !!appleNfcConfig(env),
+    };
+  });
+
+/** Owner-only Google save link for one of the three passes; the server resolves the member's own card. */
+export const createVaultPass = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .inputValidator((d: unknown) => z.object({ passType: z.enum(["PUBLIC_PROFILE", "STEALTH", "SMART_TAP_KEY"]) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const env = process.env as Record<string, string | undefined>;
+    const { isPlatformFeatureEnabled } = await import("@/lib/platform-features.server");
+    if (!(await isPlatformFeatureEnabled("wallet"))) return { ok: false as const, error: "feature_disabled" };
+    const { googleWalletConfig, googleLogoUrl } = await import("./wallet-pass");
+    const cfg = googleWalletConfig(env);
+    if (!cfg) return { ok: false as const, error: "wallet_not_configured" };
+    const { walletOrigin, generateWalletPayload } = await import("./wallet-payload.server");
+    const { signGoogleSaveJwt, googleSaveLink } = await import("./google-wallet.server");
+    try {
+      if (data.passType === "SMART_TAP_KEY") {
+        const { smartTapConfig, googleKeySaveClaims } = await import("./wallet-key");
+        const smartTap = smartTapConfig(env);
+        if (!smartTap) return { ok: false as const, error: "smart_tap_not_configured" };
+        const { walletKeyPayload } = await import("./wallet-key.server");
+        const key = await walletKeyPayload(context.userId, env["WALLET_ID_SECRET"]);
+        if (!key) return { ok: false as const, error: "key_not_configured" };
+        const claims = googleKeySaveClaims(key, { issuerId: cfg.issuerId, serviceAccountEmail: cfg.serviceAccountEmail, origins: [walletOrigin()], logoUrl: googleLogoUrl({ url: walletOrigin() }), smartTap });
+        return { ok: true as const, saveUrl: googleSaveLink(await signGoogleSaveJwt(claims, cfg)) };
+      }
+      const space = data.passType === "STEALTH" ? "alias" : "root";
+      const own = await generateWalletPayload(context.userId, { space, allowAccountId: true });
+      if (!own || own.space !== space) return { ok: false as const, error: space === "alias" ? "no_alias" : "no_profile" };
+      const { googleCardSave } = await import("./google-wallet.server");
+      const { syncGoogleCardQuietly } = await import("./google-wallet-sync.server");
+      await syncGoogleCardQuietly(own, walletOrigin(), cfg);
+      return { ok: true as const, saveUrl: (await googleCardSave(own, walletOrigin(), cfg)).saveUrl };
+    } catch {
+      console.error("[wallet] vault pass signing failed");
+      return { ok: false as const, error: "wallet_issue_failed" };
+    }
+  });
+
 /** Public: which wallets can issue passes right now (booleans only, never config values). */
 export const getWalletStatus = createServerFn({ method: "GET" }).handler(async () => {
   const { walletStatus } = await import("./wallet-pass");

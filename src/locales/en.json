@@ -1843,5 +1843,20 @@
   "profile.nfcTagFailed": "Writing failed. Try again or use another sticker.",
   "profile.nfcTagHold": "Hold an NFC sticker against the back of your phone…",
   "profile.nfcTagWritten": "Done: anyone who taps the sticker opens your profile.",
-  "profile.writeNfcTag": "Write to NFC sticker"
+  "profile.writeNfcTag": "Write to NFC sticker",
+  "vault.title": "Wallet export: three separate passes",
+  "vault.lead": "Keep your network profile and your payment NFC physically separate for maximum security.",
+  "vault.public.title": "1 · Public Node Card",
+  "vault.public.tag": "QR only · no NFC",
+  "vault.public.body": "Your public business card. A QR code to your profile, to show and let others scan.",
+  "vault.stealth.title": "2 · Stealth / Alias Card",
+  "vault.stealth.tag": "Private alias · no NFC",
+  "vault.stealth.body": "A separate card for your private alias. Cannot be linked to your main profile.",
+  "vault.stealth.none": "You don't have a private alias yet. Create one first.",
+  "vault.key.title": "3 · Sovereign Key",
+  "vault.key.tag": "Hardware key · NFC · no QR",
+  "vault.key.body": "An encrypted key for NFC access and payments. No QR code and no profile data on screen.",
+  "vault.key.warning": "Treat this as a physical key. Never share it.",
+  "vault.key.pending": "Not available yet: waiting for NFC approval from Google (Smart Tap) and Apple.",
+  "vault.offline": "This wallet is not set up yet."
 }

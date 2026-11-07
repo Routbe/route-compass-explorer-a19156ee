@@ -16,6 +16,7 @@ import { CARD_MATERIALS, defaultMaterial, materialsFor, nearestSafeAccent, type 
 import { checkCardText, PRIVACY_MESSAGE } from "@/lib/wallet/card-privacy";
 import { SECURE_ROTATE_MS } from "@/lib/wallet/card-token";
 import { CardKeysPanel } from "./CardKeysPanel";
+import { WalletVault } from "./WalletVault";
 import type { WalletStatus } from "@/lib/wallet/wallet-pass";
 import { drawCardFaces, hasWebGL, type CardFaces } from "./card-faces";
 import type { CardFinish, LiveRef, SecureRef, TiltRef, ZoomRef, DragRef } from "./RoutCard3D";
@@ -578,6 +579,14 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
           {!gyro && <Button type="button" size="sm" variant="ghost" className="gap-1.5" onClick={() => void enableGyro()}><Smartphone className="h-3.5 w-3.5" aria-hidden /> {t("card.gyro")}</Button>}
         </div>
 
+        {ownerState.owner ? (
+          <div className="grid gap-3">
+            <WalletVault />
+            <Button type="button" variant="outline" className="h-11 gap-2 rounded-full" disabled={!card || busy !== null} onClick={() => void saveVcf()}>
+              <UserPlus className="h-4 w-4" aria-hidden /> {t("card.vcf")}
+            </Button>
+          </div>
+        ) : (
         <div className="grid gap-2">
           <Button
             type="button"
@@ -597,6 +606,7 @@ export function RoutCardDialog({ open, onOpenChange, handle, space, inline = fal
           </Button>
           {status && (!status.google || !status.apple) && <p className="text-center text-xs text-muted-foreground">{t("wallet.partly")}</p>}
         </div>
+        )}
 
         {card && ownerState.owner && (
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-border p-3">

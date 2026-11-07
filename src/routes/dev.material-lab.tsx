@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SpatialChoice } from "@/components/ui/spatial-choice";
+import { WalletVault } from "@/components/wallet/WalletVault";
 import { InterfaceThemePicker, InterfaceThemeSwitcher } from "@/components/settings/InterfaceThemeSwitcher";
 
 /**
@@ -43,6 +44,9 @@ function MaterialLab() {
         <Button data-lab="primary"><Sparkles /> Studio</Button>
       </div>}>
       <div className="space-y-6">
+        <section data-lab="wallet-vault" className="max-w-md">
+          <WalletVault />
+        </section>
         <section data-lab="appearance" className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
           <h2 className="text-lg font-medium">Weergave</h2>
           <InterfaceThemePicker />

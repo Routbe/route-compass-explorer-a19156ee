@@ -1,0 +1,56 @@
+import { describe, expect, it } from "vitest";
+import { appleKeyPassJson, appleNfcConfig, googleKeySaveClaims, PASS_TYPE_RULES, passTypeSpace, smartTapConfig } from "./wallet-key";
+import { verifyWalletKeyToken, walletKeyPayload } from "./wallet-key.server";
+
+const SECRET = "x".repeat(40);
+
+describe("three separate Wallet passes", () => {
+  it("only the key transmits NFC, only the profile cards show a QR", () => {
+    expect(PASS_TYPE_RULES.PUBLIC_PROFILE).toEqual({ qr: true, nfc: false });
+    expect(PASS_TYPE_RULES.STEALTH).toEqual({ qr: true, nfc: false });
+    expect(PASS_TYPE_RULES.SMART_TAP_KEY).toEqual({ qr: false, nfc: true });
+    expect([passTypeSpace("PUBLIC_PROFILE"), passTypeSpace("STEALTH"), passTypeSpace("SMART_TAP_KEY")]).toEqual(["root", "alias", null]);
+  });
+
+  it("the Google key has Smart Tap, no barcode and no handle, name or profile link", async () => {
+    const key = (await walletKeyPayload("user-1", SECRET, 1_700_000_000_000))!;
+    const c = googleKeySaveClaims(key, { issuerId: "3388", serviceAccountEmail: "sa@x", origins: ["https://rout.be"], logoUrl: "https://rout.be/logo.png", smartTap: { redemptionIssuerId: "3388" } });
+    const [klass, obj] = [c.payload.loyaltyClasses[0]!, c.payload.loyaltyObjects[0]!];
+    expect(klass.enableSmartTap).toBe(true);
+    expect(klass.redemptionIssuers).toEqual(["3388"]);
+    expect(obj.smartTapRedemptionValue).toBe(key.token);
+    expect("barcode" in obj).toBe(false);
+    expect(JSON.stringify(obj)).not.toMatch(/rout\.be\/@|\/u\/|user-1/);
+  });
+
+  it("the Apple key carries the VAS nfc dictionary and no barcodes", async () => {
+    const key = (await walletKeyPayload("user-1", SECRET))!;
+    const p = appleKeyPassJson(key, { passTypeId: "pass.be.rout", teamId: "T" }, { encryptionPublicKey: "k" });
+    expect(p.nfc.message).toBe(key.token);
+    expect(new TextEncoder().encode(p.nfc.message).length).toBeLessThanOrEqual(64);
+    expect("barcodes" in p).toBe(false);
+  });
+
+  it("re-issuing gives a new token for the same key, and tokens verify only with the secret", async () => {
+    const a = (await walletKeyPayload("user-1", SECRET, 1_000_000))!;
+    const b = (await walletKeyPayload("user-1", SECRET, 2_000_000))!;
+    expect(a.serial).toBe(b.serial);
+    expect(a.token).not.toBe(b.token);
+    expect((await verifyWalletKeyToken(a.token, SECRET)).ok).toBe(true);
+    expect((await verifyWalletKeyToken(a.token, "y".repeat(40))).ok).toBe(false);
+    expect((await verifyWalletKeyToken(a.token.slice(0, -1) + (a.token.endsWith("A") ? "B" : "A"), SECRET)).ok).toBe(false);
+  });
+
+  it("the key serial is unlinkable to the account id and missing secrets give no key", async () => {
+    const k = (await walletKeyPayload("user-1", SECRET))!;
+    expect(k.serial).not.toContain("user-1");
+    expect(await walletKeyPayload("user-1", "short")).toBeNull();
+    expect(await walletKeyPayload("user-1", undefined)).toBeNull();
+  });
+
+  it("Smart Tap and Apple NFC stay off until their approvals are configured", () => {
+    expect(smartTapConfig({})).toBeNull();
+    expect(smartTapConfig({ GOOGLE_WALLET_SMART_TAP_ISSUER_ID: "3388000000022" })).toEqual({ redemptionIssuerId: "3388000000022" });
+    expect(appleNfcConfig({ APPLE_WALLET_NFC_PUBLIC_KEY: "short" })).toBeNull();
+  });
+});

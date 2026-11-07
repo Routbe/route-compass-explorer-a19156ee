@@ -20,6 +20,9 @@ export type GoogleLoyaltyClass = {
   localizedAccountNameLabel?: LocalizedString;
   localizedAccountIdLabel?: LocalizedString;
   classTemplateInfo?: { cardTemplateOverride: { cardRowTemplateInfos: GoogleCardRow[] } };
+  /** Smart Tap (Sovereign Key only): NFC transmission to the listed redemption issuers' readers. */
+  enableSmartTap?: boolean;
+  redemptionIssuers?: string[];
 };
 export type GoogleLoyaltyObject = {
   id: string; classId: string; state: "ACTIVE";
@@ -30,6 +33,8 @@ export type GoogleLoyaltyObject = {
   textModulesData: GoogleTextModule[];
   barcode?: { type: "QR_CODE"; value: string; alternateText: string };
   imageModulesData?: { id: string; mainImage: GoogleImage }[];
-  linksModuleData: { uris: { uri: string; localizedDescription: LocalizedString; id: string }[] };
+  linksModuleData?: { uris: { uri: string; localizedDescription: LocalizedString; id: string }[] };
+  /** Smart Tap payload sent over NFC (Sovereign Key only); never shown on screen. */
+  smartTapRedemptionValue?: string;
 };
 export type GoogleCardClaims = { iss: string; aud: "google"; typ: "savetowallet"; origins: string[]; payload: { loyaltyClasses: GoogleLoyaltyClass[]; loyaltyObjects: GoogleLoyaltyObject[] } };
