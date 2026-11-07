@@ -13,6 +13,8 @@ import { masterKeyFromMnemonic, newMasterKey } from "@/lib/e2ee/recovery";
 import { loadDeviceKey, saveDeviceKey, workspaceKeyFromMaster, type WorkspaceKey } from "@/lib/e2ee/device-key";
 import { decryptLedgerEvent, generateLedgerKeys, unlockLedgerKey } from "@/lib/ledger/crypto";
 import { wipe, wipeMessage } from "@/lib/crypto/wipe";
+import { checkShard, createVault, openVault } from "@/lib/recovery/vault";
+import { claimSubject } from "@/lib/recovery/pairwise";
 import {
   VAULT_TTL_MINUTES,
   isEphemeralSecret,
@@ -254,6 +256,50 @@ export const handlers: Handlers = {
       return fail("invalid_mnemonic");
     }
     return storeMaster(userId, entropy);
+  },
+
+  async "recovery.create"({ mnemonic }) {
+    let entropy: Uint8Array;
+    try {
+      entropy = masterKeyFromMnemonic(str(mnemonic, 1024));
+    } catch {
+      return fail("invalid_mnemonic");
+    }
+    try {
+      return await createVault(entropy);
+    } finally {
+      wipe(entropy);
+    }
+  },
+
+  async "recovery.check"({ vault, shard }) {
+    return checkShard(str(shard, 400), vault);
+  },
+
+  async "recovery.restore"({ userId, vault, shards, practice }) {
+    if (!Array.isArray(shards) || shards.length > 5) fail("invalid_input");
+    let entropy: Uint8Array;
+    try {
+      entropy = await openVault(shards.map((t) => str(t, 400)), vault);
+    } catch {
+      return fail("decrypt_failed");
+    }
+    if (practice) {
+      wipe(entropy);
+      return { keyId: null };
+    }
+    return storeMaster(userId, entropy);
+  },
+
+  async "pairwise.claim"({ root, sector, nonce }) {
+    const r = bytes(root);
+    try {
+      return await claimSubject(r, str(sector, 253), str(nonce, 200));
+    } catch {
+      return fail("invalid_input");
+    } finally {
+      wipe(r);
+    }
   },
 
   async "data.seal"({ userId, aad, plaintext }) {

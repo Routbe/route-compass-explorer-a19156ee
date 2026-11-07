@@ -180,6 +180,14 @@ export const enclave = {
     decrypt: (keyId: string, items: { id: string; payload: string }[]) => callEnclave("ledger.decrypt", { keyId, items }),
     lock: (keyId?: string) => callEnclave("ledger.lock", keyId ? { keyId } : {}),
   },
+  recovery: {
+    create: (mnemonic: string) => callEnclave("recovery.create", { mnemonic }),
+    check: (vault: RecoveryVault, shard: string) => callEnclave("recovery.check", { vault, shard }),
+    restore: (userId: string, vault: RecoveryVault, shards: string[], practice = false) => callEnclave("recovery.restore", { userId, vault, shards, practice }),
+  },
+  pairwise: {
+    claim: (root: Uint8Array, sector: string, nonce: string) => callEnclave("pairwise.claim", { root, sector, nonce }, moved(root)),
+  },
   hash: {
     sha256Hex: (text: string) => callEnclave("hash.sha256Hex", { text }),
   },
