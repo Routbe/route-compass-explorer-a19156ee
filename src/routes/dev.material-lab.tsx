@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SpatialChoice } from "@/components/ui/spatial-choice";
 import { WalletVault } from "@/components/wallet/WalletVault";
+import { RoutCardDialog } from "@/components/wallet/RoutCardDialog";
+import { ShareWidget } from "@/components/dashboard/ShareCardWidgets";
 import { InterfaceThemePicker, InterfaceThemeSwitcher } from "@/components/settings/InterfaceThemeSwitcher";
 
 /**
@@ -46,6 +48,12 @@ function MaterialLab() {
       <div className="space-y-6">
         <section data-lab="wallet-vault" className="max-w-md">
           <WalletVault />
+        </section>
+        <section data-lab="share-widget" className="max-w-md">
+          <ShareWidget handle="aurelinemathieu" />
+        </section>
+        <section data-lab="rout-card" className="max-w-md">
+          <RoutCardDialog inline open onOpenChange={() => {}} handle="aurelinemathieu" />
         </section>
         <section data-lab="appearance" className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
           <h2 className="text-lg font-medium">Weergave</h2>
