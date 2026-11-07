@@ -46,10 +46,21 @@ export async function createVault(entropy: Uint8Array): Promise<{ vault: Recover
   }
 }
 
+export function assertVault(v: unknown): RecoveryVault {
+  const o = v as RecoveryVault;
+  if (!o || typeof o !== "object" || !/^[0-9a-f]{32}$/.test(o.vaultId) || o.version !== SHARD_VERSION || o.threshold !== RECOVERY_THRESHOLD
+    || typeof o.sealedMaster !== "string" || !/^[A-Za-z0-9_-]{16}\.[A-Za-z0-9_-]{40,200}$/.test(o.sealedMaster)
+    || !Array.isArray(o.commitments) || o.commitments.length !== RECOVERY_SHARDS || !o.commitments.every((c) => /^[0-9a-f]{64}$/.test(c))) {
+    throw new Error("invalid_vault");
+  }
+  return o;
+}
+
 export type ShardCheck = { index: number; ok: boolean; reason?: "wrong_vault" | "forged" | "duplicate" | "unreadable" };
 
 /** Validates one typed/scanned shard against the vault without reconstructing anything. */
-export async function checkShard(text: string, vault: RecoveryVault): Promise<ShardCheck> {
+export async function checkShard(text: string, input: RecoveryVault): Promise<ShardCheck> {
+  const vault = assertVault(input);
   let s;
   try { s = await decodeShard(text); } catch { return { index: 0, ok: false, reason: "unreadable" }; }
   try {
@@ -63,7 +74,8 @@ export async function checkShard(text: string, vault: RecoveryVault): Promise<Sh
 }
 
 /** Reconstructs the Master Key entropy. Throws unless `threshold` valid, distinct shards are given. */
-export async function openVault(texts: string[], vault: RecoveryVault): Promise<Uint8Array> {
+export async function openVault(texts: string[], input: RecoveryVault): Promise<Uint8Array> {
+  const vault = assertVault(input);
   const vaultIdBytes = unhex(vault.vaultId);
   const seen = new Map<number, Uint8Array>();
   try {
