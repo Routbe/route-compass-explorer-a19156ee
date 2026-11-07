@@ -26,6 +26,7 @@ import { BOOT_SCRIPT, DEFAULT_UI_PREFERENCES, isInternalInterface } from "@/lib/
 import { readRequestUiPreferences } from "@/lib/ui-preferences-request";
 import { UiPreferencesSeed, useUiPreferences } from "@/hooks/useUiPreferences";
 import { UiPreferenceAccountSync } from "@/components/settings/UiPreferenceAccountSync";
+import { KeyHaptics } from "@/components/settings/KeyHaptics";
 import { useMatches } from "@tanstack/react-router";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -238,6 +239,7 @@ function RootComponent() {
             <AuthProvider>
               <LanguageSync />
               <UiPreferenceAccountSync />
+              <KeyHaptics />
               <ErrorBoundary>
                   {/* Required: nested routes render here. */}
                   <ShellSwitch>
