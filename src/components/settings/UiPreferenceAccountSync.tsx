@@ -13,20 +13,24 @@ export function UiPreferenceAccountSync() {
   const { user } = useAuth();
   const { material } = useUiPreferences();
   const adoptedFor = useRef<string | null>(null);
+  // Bumped on every device change: a late account answer never beats a newer local choice.
+  const version = useRef(0);
+  const lastMaterial = useRef(material);
+  if (lastMaterial.current !== material) { lastMaterial.current = material; version.current += 1; }
   const userId = user?.id ?? null;
 
   useEffect(() => {
     if (!userId) { adoptedFor.current = null; return; }
     if (adoptedFor.current === userId) return;
-    let live = true;
+    const startedAt = version.current;
     getAccountUiMaterial().then(({ material: stored }) => {
-      if (!live) return;
+      if (adoptedFor.current === userId) return;
       adoptedFor.current = userId;
-      if (stored) setUiPreferences({ material: stored });
-      else void saveAccountUiMaterial({ data: { material } }).catch(() => undefined);
-    }).catch(() => { if (live) adoptedFor.current = userId; });
-    return () => { live = false; };
-  }, [userId, material]);
+      if (stored && version.current === startedAt) setUiPreferences({ material: stored });
+      else void saveAccountUiMaterial({ data: { material: lastMaterial.current } }).catch(() => undefined);
+    }).catch(() => { adoptedFor.current = userId; });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   useEffect(() => {
     if (!userId || adoptedFor.current !== userId) return;
