@@ -46,6 +46,8 @@
     text-shadow: none !important;
   }
   :is([class*="blur"], [class*="drop-shadow"], [class*="glow"]) { filter: none !important; }
+  /* Decorative glow layers have no meaning here and must never sit on top of a key. */
+  [class~="absolute"]:is([class*="blur-"], [class~="blur"]):not(:has(*)) { display: none !important; }
   :is(.glow-card, .acrylic-card, .spatial-glass)::before,
   :is(.glow-card, .acrylic-card, .spatial-glass)::after { display: none !important; }
 
