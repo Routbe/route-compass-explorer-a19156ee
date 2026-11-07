@@ -12,7 +12,7 @@ export function KeyHaptics() {
       if (e.pointerType === "mouse") return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       const el = (e.target as Element | null)?.closest?.(KEY_SELECTOR);
-      if (!el || el.closest("[data-profile-theme],[data-qr-container],[data-interface-artwork]")) return;
+      if (!el || el.closest("[data-profile-theme],[data-interface-artwork]")) return;
       if ((el as HTMLButtonElement).disabled) return;
       try { navigator.vibrate?.(10); } catch { /* unsupported */ }
     };

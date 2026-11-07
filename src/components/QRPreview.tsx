@@ -1174,6 +1174,7 @@ export function QRPreview({
       {/* QR Code Display — always rendered on a real white sheet (even in dark
           mode) so the preview stays scannable and print-accurate. */}
       <div
+        data-interface-artwork
         className={cn(
           "w-full max-w-[320px] overflow-hidden p-3 sm:p-4 transition-colors duration-150",
           frameStyleClasses[frameStyle],

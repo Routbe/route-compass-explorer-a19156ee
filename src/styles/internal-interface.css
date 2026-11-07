@@ -38,7 +38,7 @@
   --m-hover: hsl(var(--foreground) / 0.08);
 }
 
-@scope (:root[data-workspace-ui="internal"][data-theme="mechanical"]) to ([data-profile-theme], [data-qr-container], [data-interface-artwork], .preview-sheet) {
+@scope (:root[data-workspace-ui="internal"][data-theme="mechanical"]) to ([data-profile-theme], [data-interface-artwork], .preview-sheet) {
   /* 1 — No diffusion anywhere: blur, glow and soft shadows are not part of this material. */
   *, *::before, *::after {
     backdrop-filter: none !important;
