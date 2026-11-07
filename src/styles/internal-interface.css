@@ -15,6 +15,8 @@
   --m-radius-pill: 9999px;
   --m-press: 2px;
   --m-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Key travel: fast with a tiny spring overshoot on release, like a keycap. */
+  --m-key-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
   --m-surface: hsl(var(--card));
   --m-overlay: hsl(var(--popover));
   --m-page: hsl(var(--background));
@@ -82,7 +84,7 @@
   .spatial-button {
     border-radius: var(--m-radius-pill) !important;
     border: 1px solid var(--m-edge) !important;
-    transition: background-color 120ms var(--m-ease), border-color 120ms var(--m-ease), color 120ms var(--m-ease), translate 90ms var(--m-ease), box-shadow 90ms var(--m-ease) !important;
+    transition: background-color 120ms var(--m-ease), border-color 120ms var(--m-ease), color 120ms var(--m-ease), translate 75ms var(--m-key-ease), box-shadow 75ms var(--m-key-ease) !important;
   }
   .spatial-button:is([data-spatial-control="default"], [data-spatial-control="destructive"], [data-spatial-control="matcha"]):not([data-spatial-size="icon"]) {
     border-color: var(--m-action-edge) !important;
@@ -156,6 +158,31 @@
     outline: 2px solid hsl(var(--ring)) !important;
     outline-offset: 2px;
   }
+
+  /* 5 — Keycaps: secondary keys (share, studio pills, status chips) rest on a
+     1px ledge and travel 1px; primary keys keep the 2px ledge above. */
+  [data-tactile] {
+    border: 1px solid var(--m-action-edge) !important;
+    border-radius: var(--m-radius-pill) !important;
+    background-color: var(--m-surface) !important;
+    box-shadow: var(--m-press) var(--m-press) 0 0 var(--m-action-edge) !important;
+    transition: translate 75ms var(--m-key-ease), box-shadow 75ms var(--m-key-ease), background-color 120ms var(--m-ease) !important;
+  }
+  [data-tactile]:hover { background-color: var(--m-control) !important; }
+  [data-tactile]:not(:disabled):active, [data-tactile][data-state="open"] {
+    translate: var(--m-press) var(--m-press);
+    box-shadow: 0 0 0 0 transparent !important;
+  }
+
+  /* 6 — Folders: one card per folder. Cards nested inside an open folder are
+     rows, not a second folder: no second frame, just a quiet well. */
+  :is(.acrylic-card, .spatial-glass, .glow-card) :is(.acrylic-card, .spatial-glass, .glow-card),
+  [role="region"] :is([class~="rounded-xl"], [class~="rounded-2xl"])[class~="border"]:not(button, a, input, [data-tactile], .spatial-button) {
+    background: var(--m-page) !important;
+    border: 1px solid var(--m-hairline) !important;
+    border-radius: var(--m-radius-field) !important;
+  }
+  [data-state="open"] > h3 > [data-radix-collection-item], [data-state="open"] > h3 > button { border-bottom: 1px solid var(--m-hairline) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
