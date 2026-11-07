@@ -302,9 +302,9 @@ function Card({ faces, finish, pbr, flipped, tilt, live, zoom, secure, onFlip, d
     const wm = watermark.current;
     if (wm) {
       // Rigidly printed: every element stays fixed to the card body.
-      wm.position.x = 0;
-      wm.position.y = H * 0.29;
-      wm.rotation.z = -0.12;
+      wm.position.x = cx(150);
+      wm.position.y = cy(960);
+      wm.rotation.z = 0;
     }
     for (const material of materials) {
     const u = material.uniforms;
