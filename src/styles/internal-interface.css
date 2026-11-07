@@ -229,6 +229,12 @@
     box-shadow: var(--m-cap-shadow-down) !important;
   }
 
+  /* A pill-shaped frame only holds pill-shaped keys: square corners would poke out of its curve. */
+  :is(.spatial-track, .spatial-control-pill, [class~="rounded-full"]) > :is(button, a, [role="tab"], [role="radio"], [data-tactile]),
+  :is(.spatial-track, .spatial-control-pill, [class~="rounded-full"]) > * > :is(button, a, [role="tab"], [role="radio"]) {
+    border-radius: var(--m-radius-pill) !important;
+  }
+
   /* Keys that sit inside a rounded group (segmented tracks, toggle groups, tab lists)
      are flush with their bed: no wall that could stick out of the rounded frame. */
   :is(.spatial-track, [role="tablist"], [role="group"], [role="radiogroup"], [role="toolbar"], .spatial-control-pill) :is(.spatial-button, [data-tactile]) {
