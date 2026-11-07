@@ -143,7 +143,7 @@ void main() {
   // Never print optical layers over QR quiet zones, portraits or MRZ.
   // Only the avatar's own opaque pixels are reserved (from its edge inward):
   // transparent or open areas of a non-round avatar keep the card effects.
-  float disc = 1.0 - smoothstep(0.235, 0.25, length((vUv - vec2(0.5, 0.58)) * vec2(1.0, 1.588)));
+  float disc = 1.0 - smoothstep(${AVATAR_UV.r0}, ${AVATAR_UV.r1}, length((vUv - vec2(0.5, ${AVATAR_UV.y})) * vec2(1.0, 1.588)));
   float avatarAlpha = smoothstep(0.02, 0.5, texture2D(uPortrait, vUv).r) * disc;
   float frontReserved = max(boxMask(vUv, uQrBox.xy, uQrBox.zw), avatarAlpha);
   float backReserved = max(boxMask(vUv, uQrBox.xy, uQrBox.zw),
