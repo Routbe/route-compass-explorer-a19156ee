@@ -37,7 +37,7 @@ describe("workspace material preference lifecycle", () => {
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
     expect(localStorage.getItem(INTERFACE_THEME_KEY)).toBe("glass");
   });
-  it("synchronizes another tab and falls back to Sovereign on clearing storage", async () => {
+  it("synchronizes another tab and falls back to Mechanical on clearing storage", async () => {
     render(<ThemeProvider><Controls /></ThemeProvider>);
     act(() => window.dispatchEvent(new StorageEvent("storage", { key: INTERFACE_THEME_KEY, newValue: "glass" })));
     expect(document.documentElement.dataset["theme"]).toBe("glass");
