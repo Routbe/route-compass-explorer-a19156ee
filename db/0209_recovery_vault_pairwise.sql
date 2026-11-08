@@ -121,7 +121,7 @@ returns integer language plpgsql security definer set search_path to 'public' as
 declare v_recent integer;
 begin
   select count(*) into v_recent from public.recovery_attempts
-   where user_id = p_user and outcome in ('started', 'failed') and created_at > now() - interval '1 hour';
+   where user_id = p_user and outcome in ('started', 'failed', 'practice') and created_at > now() - interval '1 hour';
   insert into public.recovery_attempts (user_id, outcome) values (p_user, p_outcome);
   return v_recent;
 end $$;
