@@ -34,7 +34,9 @@ export type NotificationKind =
   | "new_device_login"
   | "node_expiry_warning"
   | "node_expiry_final"
-  | "merge_verification";
+  | "merge_verification"
+  | "recovery_vault_changed"
+  | "recovery_attempt";
 
 interface Copy {
   subject: string;
@@ -403,6 +405,50 @@ const COPY: Record<NotificationKind, Record<NotificationLocale, Omit<Copy, "cta"
       body: "Nutze den Code aus deinem Dashboard, um beide Konten zusammenzuführen. Er läuft bald ab. Nicht du? Ignoriere diese Mail — es ändert sich nichts.",
     },
   },
+  recovery_vault_changed: {
+    nl: {
+      subject: "Je herstelkluis is aangepast",
+      title: "Herstelkluis aangepast",
+      body: "Je herstelkluis (3 van 5 scherven) is net aangemaakt, vernieuwd of verwijderd. Oude scherven werken niet meer. Was jij dit niet? Zet je account meteen op slot via Account & Beveiliging.",
+    },
+    en: {
+      subject: "Your recovery vault changed",
+      title: "Recovery vault changed",
+      body: "Your recovery vault (3 of 5 shards) was just created, renewed or removed. Old shards no longer work. Not you? Lock your account right away in Account & Security.",
+    },
+    fr: {
+      subject: "Votre coffre de récupération a changé",
+      title: "Coffre de récupération modifié",
+      body: "Votre coffre de récupération (3 fragments sur 5) vient d'être créé, renouvelé ou supprimé. Les anciens fragments ne fonctionnent plus. Ce n'était pas vous ? Verrouillez votre compte dans Compte & Sécurité.",
+    },
+    de: {
+      subject: "Dein Wiederherstellungstresor wurde geändert",
+      title: "Wiederherstellungstresor geändert",
+      body: "Dein Wiederherstellungstresor (3 von 5 Teilen) wurde gerade erstellt, erneuert oder entfernt. Alte Teile funktionieren nicht mehr. Nicht du? Sperre dein Konto sofort unter Konto & Sicherheit.",
+    },
+  },
+  recovery_attempt: {
+    nl: {
+      subject: "Iemand herstelt je hoofdsleutel",
+      title: "Herstelpoging met je scherven",
+      body: "Er is net een herstel met je scherven gestart op een toestel dat met je account is ingelogd. Was jij dit niet? Vernieuw je scherven en zet je account op slot via Account & Beveiliging.",
+    },
+    en: {
+      subject: "Someone is restoring your master key",
+      title: "Recovery attempt with your shards",
+      body: "A recovery with your shards just started on a device signed in to your account. Not you? Renew your shards and lock your account in Account & Security.",
+    },
+    fr: {
+      subject: "Quelqu'un restaure votre clé principale",
+      title: "Tentative de récupération avec vos fragments",
+      body: "Une récupération avec vos fragments vient de démarrer sur un appareil connecté à votre compte. Ce n'était pas vous ? Renouvelez vos fragments et verrouillez votre compte dans Compte & Sécurité.",
+    },
+    de: {
+      subject: "Jemand stellt deinen Hauptschlüssel wieder her",
+      title: "Wiederherstellungsversuch mit deinen Teilen",
+      body: "Gerade wurde auf einem Gerät, das mit deinem Konto angemeldet ist, eine Wiederherstellung mit deinen Teilen gestartet. Nicht du? Erneuere deine Teile und sperre dein Konto unter Konto & Sicherheit.",
+    },
+  },
 };
 
 export function notificationCopy(kind: NotificationKind, locale: NotificationLocale): Copy {
@@ -427,6 +473,8 @@ export const NOTIFICATION_SEVERITY: Record<NotificationKind, "info" | "success" 
   node_expiry_warning: "warning",
   node_expiry_final: "warning",
   merge_verification: "info",
+  recovery_vault_changed: "warning",
+  recovery_attempt: "warning",
 };
 
 /**
@@ -460,6 +508,8 @@ export const NOTIFICATION_EMAIL_CATEGORY: Record<
   node_expiry_warning: "node_expiry",
   node_expiry_final: "node_expiry",
   merge_verification: "merge",
+  recovery_vault_changed: "security",
+  recovery_attempt: "security",
 };
 
 /** Shared ROUT e-mail shell — inline styles only, white body, no external CSS. */
