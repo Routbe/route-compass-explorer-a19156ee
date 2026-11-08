@@ -8,7 +8,7 @@ export const STEP_UP_REQUIRED = "STEP_UP_REQUIRED";
 export const STEP_UP_COOKIE = "rout_stepup";
 
 export type StepUpMethod = "passkey" | "totp" | "email";
-export type StepUpAction = "vault_export" | "account_delete" | "oauth_secret" | "workspace_role" | "account_merge" | "oauth_subject_type" | "primary_email_change" | "app_email_reassign" | "app_email_revoke" | "passkey_add";
+export type StepUpAction = "vault_export" | "account_delete" | "oauth_secret" | "workspace_role" | "account_merge" | "oauth_subject_type" | "primary_email_change" | "app_email_reassign" | "app_email_revoke" | "passkey_add" | "recovery_vault";
 
 export function allowedStepUpMethods(enrolled: { passkey: boolean; totp: boolean }): StepUpMethod[] {
   const strong: StepUpMethod[] = [];
