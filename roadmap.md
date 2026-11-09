@@ -106,3 +106,11 @@
 - [x] Card front: big QR rout.be/<user>/<4 digits changing every 10 min>; back: small QR + NFC with a very long secret link.
 - [ ] Identity layer: SUPREME (server router) and OMEGA (no server mapping, client ZK proofs) contradict each other; needs owner choice.
 - [ ] Identity uploads (PRF derivation + E2EE of birth date/names + ZK/VC, decoupled tables; Shamir recovery vault, service-worker integrity, OHTTP): needs owner decision — encrypting birth dates breaks the server-side minor/parent-consent checks, and a service worker cannot protect against a server that serves a changed worker.
+
+## Current request: finish recovery vault + partner IDs (9 Nov 2026)
+
+- [ ] Printable recovery sheet (clean print layout, check groups).
+- [ ] Trusted contact: shard encrypted for the contact's own key, contact accepts and releases on request, safety codes.
+- [ ] Partner sign-in with device-made partner IDs (member opt-in, no server fallback, sealed in tokens).
+- [ ] Partner IDs and contact key from the Master Key (same on every device, restorable via the vault) instead of one passkey.
+- [ ] Tests + signed-in check on phone and computer size.
