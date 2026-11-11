@@ -97,6 +97,10 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
   const [readiness, setReadiness] = useState<AuthReadiness | null>(null);
   const [configuredProviders, setConfiguredProviders] = useState<string[]>([]);
   const unavailable = readiness?.ready === false;
+  const [embedded, setEmbedded] = useState(false);
+  useEffect(() => {
+    try { setEmbedded(window.self !== window.top); } catch { setEmbedded(true); }
+  }, []);
 
   useEffect(() => {
     fetch("/api/public/auth/providers", { credentials: "omit" })
@@ -441,6 +445,12 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
             )}
           </div>
 
+          {embedded && (
+            <Alert className="mb-4"><AlertDescription className="flex flex-col gap-2">
+              <span>Inloggen en registreren met een passkey werkt niet in dit ingebedde venster. Open de pagina in een nieuw tabblad.</span>
+              <a href={typeof window !== "undefined" ? window.location.href : "/auth/sign-in"} target="_blank" rel="noopener noreferrer" className="font-medium underline">Open in nieuw tabblad</a>
+            </AlertDescription></Alert>
+          )}
           {unavailable && <Alert variant="destructive" className="mb-4"><AlertDescription>{AUTH_UNAVAILABLE_TEXT[locale]}</AlertDescription></Alert>}
 
           {mode === "signin" && step === "second" && (
