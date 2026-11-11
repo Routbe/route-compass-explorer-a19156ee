@@ -592,7 +592,7 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
           )}
 
           {mode === "signup" && !adminPortal && (
-            <form onSubmit={signUp} className="space-y-3.5">
+            <form onSubmit={signUp} className="mx-auto max-w-md space-y-3.5">
               {emailField}
               <div className="space-y-1">
                 <Label htmlFor="auth-signup-name" className="text-sm">{t("auth.pk.name")}</Label>
