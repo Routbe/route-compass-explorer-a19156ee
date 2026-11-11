@@ -251,6 +251,7 @@ import { Route as AuthenticatedDashboardRoutesRouteImport } from './routes/_auth
 import { Route as AuthenticatedStudioAccountRouteImport } from './routes/_authenticated/studio_.account'
 import { Route as AuthenticatedStudioBookingRouteImport } from './routes/_authenticated/studio_.booking'
 import { Route as ApiBookingsIdRouteImport } from './routes/api.bookings.$id'
+import { Route as ApiAccessVerifyRouteImport } from './routes/api_.access.verify'
 import { Route as ApiAdminMailCheckRouteImport } from './routes/api_.admin.mail-check'
 import { Route as ApiAgentIdentityRouteImport } from './routes/api_.agent.identity'
 import { Route as ApiAgentLinksRouteImport } from './routes/api_.agent.links'
@@ -1676,6 +1677,11 @@ const ApiBookingsIdRoute = ApiBookingsIdRouteImport.update({
   path: '/bookings/$id',
   getParentRoute: () => ApiRoute,
 } as any)
+const ApiAccessVerifyRoute = ApiAccessVerifyRouteImport.update({
+  id: '/api_/access/verify',
+  path: '/api/access/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminMailCheckRoute = ApiAdminMailCheckRouteImport.update({
   id: '/api_/admin/mail-check',
   path: '/api/admin/mail-check',
@@ -2884,6 +2890,7 @@ export interface FileRoutesByFullPath {
   '/studio/account': typeof AuthenticatedStudioAccountRoute
   '/studio/booking': typeof AuthenticatedStudioBookingRoute
   '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/access/verify': typeof ApiAccessVerifyRoute
   '/api/admin/mail-check': typeof ApiAdminMailCheckRoute
   '/api/agent/identity': typeof ApiAgentIdentityRoute
   '/api/agent/links': typeof ApiAgentLinksRoute
@@ -3288,6 +3295,7 @@ export interface FileRoutesByTo {
   '/studio/account': typeof AuthenticatedStudioAccountRoute
   '/studio/booking': typeof AuthenticatedStudioBookingRoute
   '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/access/verify': typeof ApiAccessVerifyRoute
   '/api/admin/mail-check': typeof ApiAdminMailCheckRoute
   '/api/agent/identity': typeof ApiAgentIdentityRoute
   '/api/agent/links': typeof ApiAgentLinksRoute
@@ -3709,6 +3717,7 @@ export interface FileRoutesById {
   '/_authenticated/studio_/account': typeof AuthenticatedStudioAccountRoute
   '/_authenticated/studio_/booking': typeof AuthenticatedStudioBookingRoute
   '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api_/access/verify': typeof ApiAccessVerifyRoute
   '/api_/admin/mail-check': typeof ApiAdminMailCheckRoute
   '/api_/agent/identity': typeof ApiAgentIdentityRoute
   '/api_/agent/links': typeof ApiAgentLinksRoute
@@ -4131,6 +4140,7 @@ export interface FileRouteTypes {
     | '/studio/account'
     | '/studio/booking'
     | '/api/bookings/$id'
+    | '/api/access/verify'
     | '/api/admin/mail-check'
     | '/api/agent/identity'
     | '/api/agent/links'
@@ -4535,6 +4545,7 @@ export interface FileRouteTypes {
     | '/studio/account'
     | '/studio/booking'
     | '/api/bookings/$id'
+    | '/api/access/verify'
     | '/api/admin/mail-check'
     | '/api/agent/identity'
     | '/api/agent/links'
@@ -4955,6 +4966,7 @@ export interface FileRouteTypes {
     | '/_authenticated/studio_/account'
     | '/_authenticated/studio_/booking'
     | '/api/bookings/$id'
+    | '/api_/access/verify'
     | '/api_/admin/mail-check'
     | '/api_/agent/identity'
     | '/api_/agent/links'
@@ -5244,6 +5256,7 @@ export interface RootRouteChildren {
   VCardIdRoute: typeof VCardIdRoute
   WSlugRoute: typeof WSlugRoute
   WorkspaceTransferTokenRoute: typeof WorkspaceTransferTokenRoute
+  ApiAccessVerifyRoute: typeof ApiAccessVerifyRoute
   ApiAdminMailCheckRoute: typeof ApiAdminMailCheckRoute
   ApiAgentIdentityRoute: typeof ApiAgentIdentityRoute
   ApiAgentLinksRoute: typeof ApiAgentLinksRoute
@@ -7062,6 +7075,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/bookings/$id'
       preLoaderRoute: typeof ApiBookingsIdRouteImport
       parentRoute: typeof ApiRoute
+    }
+    '/api_/access/verify': {
+      id: '/api_/access/verify'
+      path: '/api/access/verify'
+      fullPath: '/api/access/verify'
+      preLoaderRoute: typeof ApiAccessVerifyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api_/admin/mail-check': {
       id: '/api_/admin/mail-check'
@@ -9020,6 +9040,7 @@ const rootRouteChildren: RootRouteChildren = {
   VCardIdRoute: VCardIdRoute,
   WSlugRoute: WSlugRoute,
   WorkspaceTransferTokenRoute: WorkspaceTransferTokenRoute,
+  ApiAccessVerifyRoute: ApiAccessVerifyRoute,
   ApiAdminMailCheckRoute: ApiAdminMailCheckRoute,
   ApiAgentIdentityRoute: ApiAgentIdentityRoute,
   ApiAgentLinksRoute: ApiAgentLinksRoute,

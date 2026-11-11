@@ -428,14 +428,14 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
     <AppLayout>
       <div className="flex min-h-[calc(100vh-4rem)] w-full flex-col items-center justify-center bg-background p-4 text-foreground">
         {!adminPortal && (
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md lg:max-w-4xl">
             <Link to="/" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" /> {t("auth.ui.back")}
             </Link>
           </div>
         )}
 
-        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 sm:p-7">
+        <div className={`w-full rounded-2xl border border-border bg-card p-5 sm:p-7 ${!adminPortal && (mode === "signin" || mode === "signup") && step !== "second" ? "max-w-md lg:max-w-4xl" : "max-w-md"}`}>
           <div className="mb-4">
             <h1 className="mb-1 font-display text-2xl text-foreground">
               {adminPortal ? t("auth.admin") : mode === "signup" ? t("auth.ui.signup.cta") : mode === "recovery" ? t("auth.pk.recoveryTitle") : mode === "reset" ? t("auth.mf.resetTitle") : t("auth.ui.title")}
@@ -445,6 +445,12 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
             )}
           </div>
 
+          {!adminPortal && (mode === "signin" || mode === "signup") && step !== "second" && (
+            <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1" role="tablist">
+              <button type="button" role="tab" aria-selected={mode === "signin"} onClick={() => { setMode("signin"); setStep("choose"); }} className={`h-10 rounded-lg text-sm font-medium transition ${mode === "signin" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{t("auth.ui.title")}</button>
+              <button type="button" role="tab" aria-selected={mode === "signup"} onClick={() => { setMode("signup"); setStep("choose"); }} className={`h-10 rounded-lg text-sm font-medium transition ${mode === "signup" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>{t("auth.ui.signup.cta")}</button>
+            </div>
+          )}
           {embedded && (
             <Alert className="mb-4"><AlertDescription className="flex flex-col gap-2">
               <span>Inloggen en registreren met een passkey werkt niet in dit ingebedde venster. Open de pagina in een nieuw tabblad.</span>
@@ -464,7 +470,14 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
           {mode === "signin" && step !== "second" && (
             <div className="space-y-3">
               {(step === "choose" || step === "password") && (
-                <>
+                <div className={adminPortal ? "space-y-3" : "flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-8"}>
+                  {!adminPortal && <>
+                    <div className="lg:order-3"><PublicProviderSignIn configured={configuredProviders} readiness={readiness} disabled={loading} /></div>
+                    <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-muted-foreground lg:order-2 lg:flex-col lg:py-2" aria-hidden>
+                      <span className="h-px flex-1 bg-border lg:h-auto lg:w-px" /> of <span className="h-px flex-1 bg-border lg:h-auto lg:w-px" />
+                    </div>
+                  </>}
+                  <div className="space-y-3 lg:order-1">
                   <Button type="button" onClick={() => void passkeyLogin()} disabled={loading || unavailable} className="cta-glow h-auto min-h-12 w-full gap-2 whitespace-normal px-4 py-3 text-center text-sm leading-tight sm:text-base">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4 shrink-0" />} <span className="min-w-0">{t("auth.passkey")}</span>
                   </Button>
@@ -497,12 +510,12 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
                     {linkButtonStep("reset-request", t("auth.mf.forgot"), KeyRound)}
                   </div>
                   {adminPortal && <p className="text-[11px] text-muted-foreground">{t("auth.mf.adminNote")}</p>}
-                  {!adminPortal && <PublicProviderSignIn configured={configuredProviders} readiness={readiness} disabled={loading} />}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
                     {!adminPortal && linkButton("signup", t("auth.ui.signup.cta"), KeyRound)}
                     {linkButton("recovery", t("auth.mf.recoveryLink"), LifeBuoy)}
                   </div>
-                </>
+                  </div>
+                </div>
               )}
 
               {step === "link-sent" && (
@@ -579,7 +592,7 @@ export default function AuthNeon({ initialMode = "signin" }: { initialMode?: Mod
           )}
 
           {mode === "signup" && !adminPortal && (
-            <form onSubmit={signUp} className="space-y-3.5">
+            <form onSubmit={signUp} className="mx-auto max-w-md space-y-3.5">
               {emailField}
               <div className="space-y-1">
                 <Label htmlFor="auth-signup-name" className="text-sm">{t("auth.pk.name")}</Label>

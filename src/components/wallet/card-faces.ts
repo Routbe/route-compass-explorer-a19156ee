@@ -307,10 +307,24 @@ export async function drawCardFaces(card: Omit<WalletCardPayload, "heroImageUrl"
   // Back: secure, rotating QR for the owner (expires with the 30 s window);
   // everyone else sees the public QR. Slim 2-module quiet zone, no extra frame.
   const secure = opts.secureQr ?? null;
-  const bq = drawQr(b, secure ?? card.qrValue, BACK_QR.x, qy, qrSize, "M", BACK_QR.quiet, 8);
+  // Never the profile link: without a live owner token the slot stays empty.
+  const bq = secure
+    ? drawQr(b, secure, BACK_QR.x, qy, qrSize, "M", BACK_QR.quiet, 8)
+    : (() => {
+        b.fillStyle = "rgba(255,255,255,0.06)";
+        b.beginPath();
+        b.roundRect(BACK_QR.x, qy, qrSize, qrSize, 18);
+        b.fill();
+        b.fillStyle = "rgba(255,255,255,0.45)";
+        b.textAlign = "center";
+        b.font = `600 20px ui-monospace, SFMono-Regular, monospace`;
+        b.fillText("BETAALCODE", BACK_QR.x + qrSize / 2, qy + qrSize / 2 - 6);
+        b.fillText("ALLEEN EIGENAAR", BACK_QR.x + qrSize / 2, qy + qrSize / 2 + 22);
+        return { x: BACK_QR.x, y: qy, w: qrSize };
+      })();
   b.textAlign = "center";
   b.fillStyle = "#e4e4e7";
-  const caption = secure ? "SECURE QR · 60 S · EENMALIG" : card.url.replace(/^https?:\/\//, "");
+  const caption = secure ? "BETALEN · TOEGANG · 60 S · EENMALIG" : "BEVEILIGDE BETAALCODE";
   fitText(b, caption, FACE_W - 96, 26, 600);
   b.fillText(caption, FACE_W / 2, qy + qrSize + 56);
   // Live-code slot frame; the code itself is SDF text in the 3D card.

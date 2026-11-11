@@ -184,10 +184,10 @@ export const getSecureCardToken = createServerFn({ method: "POST" })
     const { validateCardActive } = await import("./card-freeze.server");
     if (!(await validateCardActive(own.serial))) return { frozen: true as const };
     const { livenessKey } = await import("./card-liveness.server");
-    const { signSecureToken } = await import("./card-token");
+    const { signSecureToken, accessPayload } = await import("./card-token");
     const now = Date.now();
     const { token, payload } = await signSecureToken(await livenessKey(), { handle: own.handle, space: own.space, now });
-    return { frozen: false as const, url: `${walletOrigin()}/s/${token}`, iat: payload.iat, exp: payload.exp, serverNow: now };
+    return { frozen: false as const, url: accessPayload(token), iat: payload.iat, exp: payload.exp, serverNow: now };
   });
 
 /** Public: check a secure QR from the back of a card. Rate limited. */
