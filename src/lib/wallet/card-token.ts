@@ -75,3 +75,20 @@ export async function verifySecureToken(key: Uint8Array, token: string, now: num
   if (p.iat > now + CLOCK_SKEW_MS || now > p.exp) return { ok: false, reason: "expired" };
   return { ok: true, payload: p };
 }
+
+/** Payment/access QR on the back of the ROUT Card: a machine token, never a web link. */
+export const ACCESS_PREFIX = "rout:access:";
+
+export function accessPayload(token: string): string {
+  return `${ACCESS_PREFIX}${token}`;
+}
+
+/** Scanner input → raw token. Web/profile URLs are always refused. */
+export function parseAccessPayload(input: string): { ok: true; token: string } | { ok: false; reason: "web_url" | "invalid" } {
+  const s = input.trim();
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(s) || /^(www\.)?rout\.be\b/i.test(s)) return { ok: false, reason: "web_url" };
+  if (!s.startsWith(ACCESS_PREFIX)) return { ok: false, reason: "invalid" };
+  const token = s.slice(ACCESS_PREFIX.length);
+  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{40,}$/.test(token) || token.length > 600) return { ok: false, reason: "invalid" };
+  return { ok: true, token };
+}
