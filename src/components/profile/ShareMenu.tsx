@@ -33,10 +33,12 @@ type Props = {
   style?: React.CSSProperties;
   /** Square icon button (compact action bars). */
   iconOnly?: boolean;
+  /** Public visitors only get the QR code and copy link. */
+  visitor?: boolean;
 };
 
 /** "Deel" menu: copy link, QR, business card (PNG/PDF) and the NFC waitlist teaser. */
-export function ShareMenu({ url, handle, name, bio, avatarUrl, showNfc, qrStyle, className, style, iconOnly }: Props) {
+export function ShareMenu({ url, handle, name, bio, avatarUrl, showNfc, qrStyle, className, style, iconOnly, visitor }: Props) {
   const { t } = useTranslation();
   const [nfcOpen, setNfcOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
@@ -135,6 +137,7 @@ export function ShareMenu({ url, handle, name, bio, avatarUrl, showNfc, qrStyle,
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => void copy()}>
             <Copy className="mr-2 h-4 w-4" aria-hidden />  {t("profile.copyLink")} </DropdownMenuItem>
+          {!visitor && (<>
           <DropdownMenuItem disabled={!pngSrc} onSelect={downloadQrPng}>
             <QrCode className="mr-2 h-4 w-4" aria-hidden />  {t("profile.downloadQr")} </DropdownMenuItem>
           <DropdownMenuItem disabled={!pngSrc} onSelect={run(() => downloadCardPng(card()))}>
@@ -151,6 +154,7 @@ export function ShareMenu({ url, handle, name, bio, avatarUrl, showNfc, qrStyle,
               <Nfc className="mr-2 h-4 w-4" aria-hidden /> {t("profile.writeNfcTag")}
             </DropdownMenuItem>
           )}
+          </>)}
           {showNfc && (
             <>
               <DropdownMenuSeparator />
@@ -161,7 +165,7 @@ export function ShareMenu({ url, handle, name, bio, avatarUrl, showNfc, qrStyle,
         </DropdownMenuContent>
       </DropdownMenu>
       {showNfc && <NfcDialog open={nfcOpen} onOpenChange={setNfcOpen} />}
-      {handle && <RoutCardDialog open={walletOpen} onOpenChange={setWalletOpen} handle={handle} space={/\/u\//.test(url) ? "alias" : "root"} />}
+      {handle && !visitor && <RoutCardDialog open={walletOpen} onOpenChange={setWalletOpen} handle={handle} space={/\/u\//.test(url) ? "alias" : "root"} />}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="flex max-h-[100dvh] w-[100vw] max-w-[100vw] flex-col items-center justify-center gap-4 border-0 sm:max-w-[min(90vw,90vh)] sm:rounded-2xl">
           <DialogHeader className="sr-only">
@@ -170,10 +174,10 @@ export function ShareMenu({ url, handle, name, bio, avatarUrl, showNfc, qrStyle,
           </DialogHeader>
           {svgSrc && <img src={svgSrc} alt={`QR-code voor ${handle}`} className="aspect-square w-full max-w-[min(90vw,80dvh)] rounded-xl" />}
           <p className="text-sm font-medium">@{handle}</p>
-          <div className="flex gap-2">
+          {!visitor && <div className="flex gap-2">
             <Button type="button" variant="outline" disabled={!pngSrc} onClick={downloadQrPng}>PNG</Button>
             <Button type="button" variant="outline" disabled={!svgSrc} onClick={downloadQr}>SVG</Button>
-          </div>
+          </div>}
         </DialogContent>
       </Dialog>
     </>
