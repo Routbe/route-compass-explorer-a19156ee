@@ -421,6 +421,7 @@ export function ProfileView({
             bio={shownBio || profile.tagline}
             avatarUrl={profile.avatar_url}
             qrStyle={prefs.qrSettings ?? null}
+            visitor
             className="backdrop-blur"
             style={{ borderColor: t.border, color: t.text, background: t.card }}
           />
